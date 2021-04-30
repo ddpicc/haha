@@ -1,0 +1,8 @@
+import './axios'
+import './chartist'
+import './components'
+import './chartkick'
+import './vueI18n'
+import './img_preview'
+import './md5'
+import './upload_img'
