@@ -72,6 +72,10 @@
             let lta_id = '';
             //运单存在，先获取运单所在的batch
             this.trackingInfo.statusList.push('运单已创建，等待库房处理');
+            if(res.data[0].finishprocess_time != null){
+              this.trackingInfo.statusList.push('库房正在处理 (' + res.data[0].finishprocess_time + ')');
+              this.trackingInfo.statusList.push('库房打包完成 (' + res.data[0].finishprocess_time + ')');
+            }
             this.$http.get('/api/getMailBagStatusByLtaTracking',{
               params: {
                 lta_tracking : this.queryPackageNm,
@@ -79,12 +83,6 @@
             }).then( (res) => {
               let displayChildOrder = false;
               lta_id = res.data[0].id;
-              if(res.data[0].created_at != null){
-                this.trackingInfo.statusList.push('库房正在处理 (' + res.data[0].created_at + ')');
-              }
-              if(res.data[0].finishprocess_time != null){
-                this.trackingInfo.statusList.push('库房打包完成 (' + res.data[0].finishprocess_time + ')');
-              }
               if(res.data[0].sendOut_at != null){
                 this.trackingInfo.statusList.push('扫入邮袋，送往机场，等待起飞 (' + res.data[0].sendOut_at + ')');
               }

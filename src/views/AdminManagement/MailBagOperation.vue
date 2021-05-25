@@ -90,7 +90,12 @@
 						show-expand
             single-expand
             :expanded.sync="expanded"
+						:search="searchPackage"
+            :custom-filter="filterText"
 					>
+						<template v-slot:top>
+							<v-text-field v-model="searchPackage" label="搜索..." class="mx-4"></v-text-field>
+						</template>
 						<template v-slot:item.action="{ item }">
 							<v-btn
 								small
@@ -101,12 +106,12 @@
 							</v-btn>
 						</template>
 						<template v-slot:item.litlleant_tracking_number="{ item }">
-							<v-chip
-								small
+							<span
+								style="text-decoration: underline;"
 								@click="toPackageInfo(item.litlleant_tracking_number)"
 							>
 								{{item.litlleant_tracking_number}}
-							</v-chip>
+							</span>
 						</template>
 						<template v-slot:item.vendor_tracking_number="{ item }">
 							<v-text-field
@@ -121,8 +126,11 @@
 							></v-text-field>
 							<v-chip
 								small
+								close
 								v-if="item.vendor_tracking_number"
 								@click="toChildPackageInfo(item.id)"
+								close-icon="mdi-delete"
+      					@click:close="deleteVendorTracking(item)"
 							>
 								{{item.vendor_tracking_number}}
 							</v-chip>
@@ -209,11 +217,17 @@
 					<v-data-table
 						:headers="selectPackageheaders"
 						:items="packageWithNoMailbagList"
+						item-key="id"
+						:search="searchStr"
+            :custom-filter="filterText"
 						show-select
 						:single-select="false"
 						v-model="selected"
 						class="elevation-1"
 					>
+						<template v-slot:top>
+							<v-text-field v-model="searchStr" label="搜索..." class="mx-4"></v-text-field>
+						</template>
 					</v-data-table>
         </v-card-text>
         <v-divider></v-divider>
@@ -319,6 +333,8 @@
 		},
     data () {
       return {
+				searchStr: '',
+				searchPackage: '',
         snackbar: false,
         snackbarColor: '',
         notification: '',
@@ -355,7 +371,7 @@
 						sortable: false,
 						text: '操作',
 						value: 'action',
-					},
+					}
 				],
 				overlay: false,
 				excelMenu: [
@@ -363,7 +379,7 @@
 				],
 				addPackageMenu: [
 					{title: '一键导入没有填快递单号的包裹'},
-					{title: '扫码枪扫描快递单'},
+					{title: '扫描小蚂蚁单号添加'},
 					{title: '根据小蚂蚁单号选择'}
 				],
 
@@ -390,11 +406,6 @@
 						text: '收件人',
 						value: 'weight'
 					},
-					{
-						sortable: false,
-						text: '操作',
-						value: 'action',
-					},
 				],
 				packageWithNoMailbagList: [],
 				selected: [],
@@ -409,6 +420,14 @@
     },
 
     methods: {
+			//搜索
+      filterText (value, search, item) {
+        return value != null &&
+          search != null &&
+          typeof value === 'string' &&
+          value.toString().toLowerCase().indexOf(search.toLowerCase()) !== -1
+      },
+
 			toChildPackageInfo: function(id){
 				this.$router.push({ path: '/admin/childpackage_info', query: {childPackageId: id}});
 			},
@@ -432,17 +451,23 @@
 				let trackingList = this.trackingArea.split('\n');
 				for(let i=0; i<trackingList.length; i++){
 					let scanPackageResult = new Promise((resolve, reject) => {
-						this.$http.post('/api/setPackageToMailBag',{
-							col: 'vendor_tracking_number',
-							colValue: trackingList[i],
-							bag_id: this.mailBag_id,
-						}).then( (res) => {
-							if(res.data.affectedRows == 1){
-								this.msgList.push(trackingList[i] + ' 成功');
-							}else{
-								this.msgList.push(trackingList[i] + ' 失败，请检查');
+						this.$http.get('/api/existUserPackageByLittleAntTracking',{
+							params: {
+								littleant_tracking: trackingList[i],
 							}
-							resolve(trackingList[i]);
+						}).then( (res) => {
+							this.$http.post('/api/setPackageToMailBag',{
+								col: 'litlleant_package_id',
+								colValue: res.data[0].id,
+								bag_id: this.mailBag_id,
+							}).then( (res) => {
+								if(res.data.affectedRows == 1){
+									this.msgList.push(trackingList[i] + ' 成功');
+								}else{
+									this.msgList.push(trackingList[i] + ' 失败，请检查');
+								}
+								resolve(trackingList[i]);
+							})
 						})
 					})
 					result.push(scanPackageResult);
@@ -545,6 +570,11 @@
 					this.getPackagesInMailBag();
 				})
 			},
+
+			deleteVendorTracking (item) {
+        item.vendor_tracking_number = '';
+				
+      },
 
 			checkPackageLimits: function(){
 				let dict = {};

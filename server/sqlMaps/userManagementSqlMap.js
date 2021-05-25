@@ -16,6 +16,7 @@ var batchUserSqlMap = {
   //package processing
   createMailBag: 'INSERT INTO littleAnt_mailbag(name,status,vendor,created_at) VALUES(?,?,?,?)',
   getAllMailBag: 'SELECT * FROM littleAnt_mailbag order by id desc',
+  
   setPackageToMailBag: 'UPDATE littleAnt_child_package set bag_id = ? WHERE ?? = ?',
   //把新生成的child order（也就是没有vendor tracking）的放到mail bag里
   setNoTrackingChildPackageToMailBag: 'UPDATE littleAnt_child_package set bag_id = ? WHERE vendor_tracking_number is NULL',
