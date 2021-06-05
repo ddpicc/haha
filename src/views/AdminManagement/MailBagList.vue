@@ -201,6 +201,15 @@
       getAllBatch: function(){
         this.$http.get('/api/getAllMailBag').then( (res) => {
           this.mailBagList = res.data;
+          for(let item of res.data){
+            this.$http.get('/api/countChildPackageNmInBag',{
+              params: {
+                bag_id : item.id,
+              }
+            }).then( (res) =>{
+              item.amount = res.data[0]['count(1)'];
+            })
+          }
         })
       }
 		},

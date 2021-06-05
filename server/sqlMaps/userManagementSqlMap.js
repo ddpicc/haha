@@ -34,18 +34,25 @@ var batchUserSqlMap = {
   updateMailBagStatus: 'UPDATE littleAnt_mailbag SET status= ?, ?? = ? WHERE id = ?',
 
   //生成child order
-  insertChildOrder: 'INSERT INTO littleAnt_child_package(litlleant_package_id,vendor,weight) VALUES(?,?,?)',
-  updateReportItemChildOrder: 'UPDATE littleAnt_user_report_items SET childPackage_Id = ? WHERE id = ?',
+  insertChildOrder: 'INSERT INTO littleAnt_child_package(litlleant_package_id,child_tracking_number,vendor,weight,report_item_description) VALUES(?,?,?,?,?)',
+  updateReportItemChildOrder: 'UPDATE littleAnt_user_report_items SET childPackage_Id = ?, unit = ? WHERE id = ?',
 
   //child package, user package, report item三个表做内连接,通过child package id查询
   searchInfoByChildPackageId: 'SELECT a.id,a.litlleant_package_id,a.vendor,a.vendor_tracking_number,a.weight,b.litlleant_tracking_number,b.to_name,b.to_phone,b.to_identity_card,b.to_address,b.to_city,b.to_state,c.item_name,c.price,c.unit,c.brand FROM littleAnt_child_package a INNER JOIN littleant_user_package b ON a.litlleant_package_id = b.id INNER JOIN littleAnt_user_report_items c ON a.id = c.childPackage_Id WHERE a.id = ?',
 
   //child package, user package, report item三个表做内连接,通过package id查询
-  searchInfoByPackageId: 'SELECT a.id,a.litlleant_package_id,a.vendor,a.vendor_tracking_number,a.weight,b.litlleant_tracking_number,b.to_name,b.to_phone,b.to_identity_card,b.to_address,b.to_city,b.to_state,c.item_name,c.price,c.unit,c.brand FROM littleAnt_child_package a INNER JOIN littleant_user_package b ON a.litlleant_package_id = b.id INNER JOIN littleAnt_user_report_items c ON a.id = c.childPackage_Id WHERE b.id = ?',
+  searchInfoByPackageId: 'SELECT a.vendor,a.child_tracking_number,a.vendor,a.bag_id,a.vendor_tracking_number,a.weight,b.*,c.item_name,c.price,c.unit,c.brand FROM littleAnt_child_package a INNER JOIN littleant_user_package b ON a.litlleant_package_id = b.id INNER JOIN littleAnt_user_report_items c ON a.id = c.childPackage_Id WHERE b.id = ?',
+
+  //child package, user package, report item三个表做内连接，获得所有child order，但是还没加入mail bag的
+  searchAllChildOrderWithNoMailBag: 'SELECT a.child_tracking_number,b.to_name,b.to_address,c.* FROM littleAnt_child_package a INNER JOIN littleAnt_user_package b ON a.litlleant_package_id = b.id INNER JOIN littleAnt_user_report_items c ON a.id = c.childPackage_Id WHERE a.bag_id is null order by b.finishprocess_time desc',
   //给以前没有child package的包裹暂用，查询信息
   searchInfo: 'SELECT a.*, b.item_name,b.price,b.unit,b.brand FROM littleant_user_package a INNER JOIN littleAnt_user_report_items b ON a.id = b.package_Id WHERE a.id = ?',
   //获得发货单excel数据
   getAllExcelInfo: 'SELECT a.vendor,a.vendor_tracking_number,a.weight,b.litlleant_tracking_number,b.to_name,b.to_phone,b.to_identity_card,b.to_address,b.to_city,b.to_state,c.type,c.item_name,c.price,c.unit,c.brand FROM littleAnt_child_package a INNER JOIN littleant_user_package b ON a.litlleant_package_id = b.id INNER JOIN littleAnt_user_report_items c ON a.id = c.childPackage_Id WHERE a.id in (SELECT id FROM littleAnt_child_package WHERE bag_id = ?)',
+
+  //邮袋里有多少包裹
+  countChildPackageNmInBag: 'SELECT count(1)  FROM littleant_child_package WHERE bag_id = ?',
+
 }
   
 module.exports = batchUserSqlMap;

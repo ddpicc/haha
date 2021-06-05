@@ -25,21 +25,20 @@
 											打印
 										</v-btn>
 									</td>
-									<td>快递单号</td>
+									<td>是否分拆</td>
 									<td>
-										<tr
-											v-for="item in userPackage"
-										>
-											<td style= "cursor:pointer; color:blue"  @click="toChildPackageInfo(item.id)">
-												{{item.vendor_tracking_number}}
-											</td>
-										</tr>
+										{{isPackageSplit}}
 									</td>
 								</tr>
 								<tr>
+									<td>包裹描述</td>
+									<td>{{userPackage[0].package_description}}</td>
+									<td>包裹备注</td>
+									<td>{{userPackage[0].package_comment}}</td>
+								<tr>
 									<td>渠道</td>
 									<td>{{userPackage[0].vendor}}</td>
-									<td>重量(lb)</td>
+									<td>总重量(lb)</td>
 									<td>{{userPackage[0].total_weight}}</td>
 								</tr>
 							</tbody>
@@ -90,12 +89,33 @@
 					</v-simple-table>
 				</v-card>
 			</v-col>
-			<v-col cols="12">
+			<v-col v-for="item in userPackage" cols="12">
         <v-card
           class="mx-auto"
           rounded
         >
-					<div class="overline ml-4">商品信息</div>
+					<div class="overline ml-4">分包裹信息</div>
+					<v-simple-table>
+    				<template v-slot:default>
+							<tbody class="text-center">
+								<tr>
+									<td>单号</td>
+									<td>{{item.child_tracking_number}}
+									</td>
+									<td>面单单号</td>
+									<td>
+										{{item.vendor_tracking_number}}
+									</td>
+								</tr>
+								<tr>
+									<td>邮袋组</td>
+									<td>{{item.bag_id}}</td>
+									<td>重量</td>
+									<td>{{item.weight}}</td>
+								</tr>
+							</tbody>
+						</template>
+					</v-simple-table>
 					<v-simple-table>
     				<template v-slot:default>
 							<thead>
@@ -116,7 +136,7 @@
 							</thead>
 							<tbody class="text-center">
 								<tr
-									v-for="item in userPackage"
+									
 								>
 									<td>{{item.item_name}}</td>
 									<td>{{item.brand}}</td>
@@ -143,6 +163,7 @@
       return {
 				userPackage: [],
 				packageId: '',
+				isPackageSplit: '整个包裹',
 			}
 		},
 
@@ -152,36 +173,15 @@
       },
 
 			getInfo: function(){
-				if(this.packageId < 500){
-					this.$http.get('/api/getPackageInfoById',{
-            params: {
-              packageId : this.packageId,
-            }
-          }).then( (res) => {
-            if(res.data[0].status == '已处理'){
-							this.$http.get('/api/searchInfo',{
-								params: {
-									package_Id : this.packageId,
-								}
-							}).then( (res) => {
-								this.userPackage = res.data;
-								jsbarcode(
-									'#barcode',
-									this.userPackage[0].litlleant_tracking_number,
-									{
-										displayValue: true // 是否在条形码下方显示文字
-									}
-								)
-							})
-						}
-					})				
-				}else{
 					this.$http.get('/api/searchInfoByPackageId',{
 						params: {
 							package_Id : this.packageId,
 						}
 					}).then( (res) => {
 						this.userPackage = res.data;
+						if(this.userPackage.length > 1){
+							this.isPackageSplit = '分拆包裹';
+						}
 						jsbarcode(
               '#barcode',
               this.userPackage[0].litlleant_tracking_number,
@@ -190,11 +190,7 @@
               }
             )
 					})
-				}				
-			},
-
-			toChildPackageInfo: function(id){
-				this.$router.push({ path: '/admin/childpackage_info', query: {childPackageId: id}});
+			
 			},
 
 			goback: function(){

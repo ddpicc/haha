@@ -64,13 +64,12 @@ export const asyncRouterMap = [
       {path: '/admin/all_recipients', name: '收件人列表', component: () => import('../views/AdminManagement/AllRecipient.vue'),meta: { role: ['admin'] }},
       {path: '/admin/package_processing', name: '包裹处理', component: () => import('../views/AdminManagement/PackageProcessing.vue'),meta: { role: ['admin','operator'] }},
       {path: '/admin/process_package', name: '包裹处理', component: () => import('../views/AdminManagement/ProcessPackage.vue'),meta: { role: ['admin','operator'] }},
-      {path: '/admin/childpackage_info', name: '快递单信息', component: () => import('../views/AdminManagement/childPackageInfoPage.vue'),meta: { role: ['admin','operator'] }},
       {path: '/admin/package_info', name: '发货单信息', component: () => import('../views/AdminManagement/PackageInfoPage.vue'),meta: { role: ['admin','operator'] }},
       
       {path: '/admin/mailbag_list', name: '邮袋列表', component: () => import('../views/AdminManagement/MailBagList.vue'),meta: { role: ['admin','operator'] }},
       {path: '/admin/mailbag_operation', name: '邮袋管理', component: () => import('../views/AdminManagement/MailBagOperation.vue'),meta: { role: ['admin','operator'] }},
-      {path: '/admin/all_invoice', name: '所有账单', component: () => import('../views/AdminManagement/AllInvoice.vue'),meta: { role: ['admin','operator'] }},
-      {path: '/dashboard', component: () => import('../views/Dashboard.vue')},
+      
+      {path: '/dashboard', component: () => import('../views/Dashboard.vue'),meta: { role: ['default','premium'] }},
       {path: '/add_package', name: '添加包裹', component: () => import('../views/AdminManagement/AddPackage.vue'),meta: { role: ['admin','operator'] }},
       {path: '/add_batch_package', name: '批量添加包裹', component: () => import('../views/AdminManagement/AddBatchPackage.vue'),meta: { role: ['admin','operator'] }},
       {path: '/package/new_order', name: '添加发货单', component: () => import('../views/ForcastPackage.vue'),meta: { role: ['default'] }},
@@ -79,6 +78,7 @@ export const asyncRouterMap = [
       {path: '/finishpackage_list', name: '已处理', component: () => import('../views/AdminManagement/FinishPackageList.vue'),meta: { role: ['admin','operator'] }},
 
       {path: '/user_list', name: '用户列表', component: () => import('../views/UserManagement.vue'),meta: { role: ['admin','operator'] }},
+      {path: '/admin/all_invoice', name: '所有账单', component: () => import('../views/AdminManagement/AllInvoice.vue'),meta: { role: ['admin','operator'] }},
       {path: '/package/send_package', name: '我要发货', component: () => import('../views/UserOperation/SentPackage.vue'),meta: { role: ['premium','batch user'] }},
       {path: '/package/mypackage', name: '我的包裹', component: () => import('../views/MyPackage.vue'),meta: { role: ['default','premium']}},
       {path: '/package/batch_mypackage', name: '全部包裹', component: () => import('../views/BatchMyPackage.vue'),meta: { role: ['batch user'] }},

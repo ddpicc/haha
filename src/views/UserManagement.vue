@@ -10,7 +10,7 @@
           <v-data-table
             :headers="headers"
             :items="items"
-            item-key="name"
+            item-key="id"
             :items-per-page="15"
             :search="searchStr"
             :custom-filter="filterText"

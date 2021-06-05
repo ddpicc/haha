@@ -730,7 +730,8 @@
           let updateThirdPartyPkgResult = new Promise((resolve, reject) => {
             this.$http.post('/api/updateThirdPartyPackageStatus',{
               status: '已入库',
-              package_Id : pkgId,
+              user_packageId: null,
+              third_party_packageId : pkgId,
             }).then( (res) => {
               resolve(2);
             })
@@ -792,8 +793,8 @@
                     packageId : item.third_party_packageId,
                   }
                 }).then( (res) => {
-                  if(dict.indexOf(res.data[0]['user_defined_tracking']) == -1){
-                    dict.push(res.data[0]['user_defined_tracking']);
+                  if(dict.indexOf(item.third_party_packageId) == -1){
+                    dict.push(item.third_party_packageId);
                     if(res.data[0]['status'] == '已全部打包'){
                       this.allPackedList.push(item.third_party_packageId);
                     }

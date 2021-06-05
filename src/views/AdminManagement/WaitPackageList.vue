@@ -15,8 +15,8 @@
             <v-chip @click="filterPackage('国际')" class="mr-3">待处理中国转运:  {{waitChinaPackageNm}}</v-chip>
             <v-chip @click="filterPackage('境内')" class="mr-3">待处理美国境内:  {{waitUSPackageNm}}</v-chip>
             <v-spacer></v-spacer>
-            <v-chip @click="filterUserPackage(1)" color="blue lighten-2" dark class="mr-3">小蚂蚁用户</v-chip>            
-            <v-chip @click="filterUserPackage(2)" color="deep-purple lighten-2" dark class="mr-3">sherry用户</v-chip>    
+            <v-chip @click="filterUserPackage(1)" color="deep-purple lighten-2" dark class="mr-3">小蚂蚁用户</v-chip>            
+            <v-chip @click="filterUserPackage(2)" color="blue lighten-2" dark class="mr-3">sherry用户</v-chip>    
           </v-toolbar>
         </v-card>
       </v-col>
@@ -264,7 +264,7 @@
         this.items = this.backupItems;
         if(type == 1){
           this.items = this.items.filter((item) => {
-            return item.rateTable_id == 1
+            return item.rateTable_id == 1 || item.rateTable_id == 3
           })
         }else{
           this.items = this.items.filter((item) => {

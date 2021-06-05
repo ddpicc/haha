@@ -1325,9 +1325,10 @@ module.exports = {
     console.log('api - insertChildOrder');
     var litlleant_package_id = req.body.litlleant_package_id, vendor = req.body.vendor;
     var weight = req.body.weight;
+    var litlleant_package_number = req.body.litlleant_package_number, report_item_description = req.body.report_item_description;
     pool.getConnection((err, connection) => {
       var sql = userSqlMap.insertChildOrder;
-      connection.query(sql, [litlleant_package_id,vendor,weight], (err, result) => {
+      connection.query(sql, [litlleant_package_id,litlleant_package_number,vendor,weight,report_item_description], (err, result) => {
         if(err)
           console.log(err);  
         res.json(result);
@@ -1340,9 +1341,10 @@ module.exports = {
   updateReportItemChildOrder(req, res, next) {
     console.log('api - updateReportItemChildOrder');
     var childPackage_Id = req.body.childPackage_Id, id = req.body.id;
+    var unit = req.body.unit;
     pool.getConnection((err, connection) => {
       var sql = userSqlMap.updateReportItemChildOrder;
-      connection.query(sql, [childPackage_Id,id], (err, result) => {
+      connection.query(sql, [childPackage_Id,unit,id], (err, result) => {
         if(err)
           console.log(err);  
         res.json(result);
@@ -1383,6 +1385,21 @@ module.exports = {
     })
   },
   
+  searchAllChildOrderWithNoMailBag(req, res, next) {
+    console.log('api - searchAllChildOrderWithNoMailBag');
+    pool.getConnection((err, connection) => {
+      if(err)
+        console.log(err);
+      var sql = userSqlMap.searchAllChildOrderWithNoMailBag;
+      connection.query(sql,(err, result) => {
+        if(err)
+          console.log(err);
+        res.json(result);
+        connection.release();
+      })
+    })
+  },
+  
   searchInfo(req, res, next) {
     console.log('api - searchInfo');
     var package_Id = req.query.package_Id;
@@ -1398,5 +1415,22 @@ module.exports = {
       })
     })
   },
+
+  countChildPackageNmInBag(req, res, next) {
+    console.log('api - countChildPackageNmInBag');
+    var bag_id = req.query.bag_id;
+    pool.getConnection((err, connection) => {
+      if(err)
+        console.log(err);
+      var sql = userSqlMap.countChildPackageNmInBag;
+      connection.query(sql, [bag_id],(err, result) => {
+        if(err)
+          console.log(err);
+        res.json(result);
+        connection.release();
+      })
+    })
+  },
+
 
 }

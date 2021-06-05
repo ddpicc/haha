@@ -105,12 +105,15 @@ DROP TABLE IF EXISTS `littleAnt_child_package`;
 CREATE TABLE `littleAnt_child_package` (
   `id` smallint(10) unsigned NOT NULL AUTO_INCREMENT,
   `litlleant_package_id` smallint(5) unsigned,
+  `child_tracking_number` varchar(30),
   `vendor` varchar(20),
   `vendor_tracking_number` varchar(30),
   
   /*管理员编辑信息*/
   `weight` float(10) NOT NULL DEFAULT 0,
   `bag_id` smallint(5) unsigned,
+
+  `report_item_description` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 

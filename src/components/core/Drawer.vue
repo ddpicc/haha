@@ -82,6 +82,11 @@
           text: '添加包裹'
         },
         {
+          to: '/add_batch_package',
+          icon: 'mdi-plus-box-multiple-outline',
+          text: '添加大货包裹'
+        },
+        {
           to: '/admin/mailbag_list',
           icon: 'mdi-plus-box-multiple-outline',
           text: '邮袋列表'

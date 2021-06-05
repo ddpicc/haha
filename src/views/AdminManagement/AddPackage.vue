@@ -445,7 +445,9 @@
 
       getAllUser: function(){
         this.$http.get('/api/getAllUser').then( (res) => {
-          this.cacheAllUser = res.data;
+          this.cacheAllUser = res.data.filter((item) => {
+            return item.role == 'premium';
+          });
         })
       }
     },
@@ -456,7 +458,9 @@
         this.courier = this.selectedPackage.courier;        
         this.instoreDate = this.selectedPackage.in_store_date;
         this.$http.get('/api/getAllUser').then( (res) => {
-          this.cacheAllUser = res.data;
+          this.cacheAllUser = res.data.filter((item) => {
+            return item.role == 'premium';
+          });
           this.selectedUser = this.selectedPackage.user_id;
           this.$http.get('/api/getItemsByPackageId',{
             params: {

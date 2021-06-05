@@ -12,7 +12,7 @@ var sqlMap = {
     updateReportItems: 'UPDATE littleAnt_admin_report_items SET item_name = ?, item_count = ?, pic1_url = ?, pic1_name = ?, pic2_url = ?, pic2_name = ?, pic3_url = ?, pic3_name = ? WHERE id = ?',
     deleteThirdPartyPackagebyId: 'DELETE FROM littleAnt_third_party_package where id=?',
     getAllWaitPackage: "SELECT a.*, b.storage_number, b.role, b.rateTable_id FROM littleant_user_package a INNER JOIN littleant_user b ON a.user_id = b.id WHERE a.status != '已处理' order by id desc",
-    getAllFinishPackage: "SELECT a.*, b.storage_number, b.role FROM littleant_user_package a INNER JOIN littleant_user b ON a.user_id = b.id WHERE a.status = '已处理' order by id desc",
+    getAllFinishPackage: "SELECT a.*, b.storage_number, b.role FROM littleant_user_package a INNER JOIN littleant_user b ON a.user_id = b.id WHERE a.status = '已处理' order by a.finishprocess_time desc",
     getPackageInfoById: 'SELECT a.*, b.storage_number, b.role,b.balance FROM littleant_user_package a INNER JOIN littleant_user b ON a.user_id = b.id WHERE a.id = ? order by id desc',
     getAllThirdPartyPackage: "SELECT a.id,a.user_id,a.user_defined_tracking,a.courier,a.in_store_date,a.status,b.storage_number,b.email,b.name FROM littleAnt_third_party_package a INNER JOIN littleAnt_user b ON a.user_id = b.id where status != '已全部打包' order by id desc",
     getThirdPartyPackageByUser: 'SELECT * FROM littleAnt_third_party_package WHERE user_id = ? AND status = ? order by id desc',

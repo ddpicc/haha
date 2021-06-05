@@ -224,7 +224,11 @@
       },
 
       gotoPackageInfo: function(item){
-        this.$router.push({ path: '/admin/package_info', query: {packageId: item.id}});
+        if(item.to_country_code == 'USA +1'){
+          this.$router.push({ path: '/admin/package_processing', query: {packageId: item.id}});
+        }else{
+          this.$router.push({ path: '/admin/package_info', query: {packageId: item.id}});
+        }        
       },
 
       deleteDialog: function(item){

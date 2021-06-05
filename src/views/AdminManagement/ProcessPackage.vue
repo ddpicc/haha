@@ -30,9 +30,6 @@
             <td>仓位号: {{selectedPackage.storage_number}}&nbsp;&nbsp;&nbsp;&nbsp;</td>
             <td>账户余额: {{selectedPackage.balance}}美元</td>
           </tr>
-          <tr v-show="false">
-            <td><div ref="print"><svg style="height: 80px" id="barcode"></svg></div></td>
-          </tr>
           <br>
           <div>
             <h3>收件人信息 </h3>
@@ -60,7 +57,7 @@
           </v-data-table>
         </v-card>
       </v-col>
-      <v-col v-if="this.$store.state.user.roles != 'default'" cols="12">
+      <v-col v-if="itemList.length" cols="12">
         <v-card
           class="mx-auto"
           rounded
@@ -254,14 +251,14 @@
                         >
                           打包
                         </v-btn>
-                        <!-- <v-btn
+                        <v-btn
                           v-if="item.unit > 1"
                           small
                           class="ml-2"
                           @click="splitItems(item)"
                         >
                           分拆
-                        </v-btn> -->
+                        </v-btn>
                       </template>
                     </v-data-table>
                   </v-card>
@@ -279,13 +276,13 @@
                       hide-default-footer
                     >
                       <template v-slot:item.action="{ item }">
-                        <v-btn
+                        <!-- <v-btn
                           v-if="item.weight != '无'"
                           small
                           @click="returnItem(item)"
                         >
                           退回
-                        </v-btn>
+                        </v-btn> -->
                       </template>
                       <template v-slot:item.vendorTracking="{ item }">
                         <v-text-field
@@ -300,19 +297,55 @@
                   </v-card>
                 </v-col>
               </v-row>
+              <v-btn
+                v-if="isFinished()"
+                block
+                @click="processFinished"
+                
+              >
+                <v-icon color="blue">
+                  mdi-check
+                </v-icon>
+                <span style="color:#3399ff;">打包完成</span>
+              </v-btn>
             </v-stepper-content>
+        
+         <v-stepper-step
+            step="4"
+            :complete="eStepper > 4"
+          >
+            打印单号
+          </v-stepper-step>
+          <v-stepper-content step="4">
+            <v-card
+              class="mx-auto"
+              rounded
+            >
+              <tr v-for="(item,i) in littleant_trackingList">
+                <td>{{item}}</td>
+                <td>
+                  <v-btn
+                    small
+                    plain
+                    @click="printBarcode(item)"
+                  >
+                    打印
+                  </v-btn>
+                </td>
+              </tr>
+              <td v-show="false"><div ref="print"><svg style="height: 80px" id="barcode"></svg></div></td>
+            </v-card>
+            <v-btn
+              block
+              @click="finishAndClose"
+            >
+              <v-icon color="blue">
+                mdi-check
+              </v-icon>
+              <span style="color:#3399ff;">关闭窗口</span>
+            </v-btn>
+          </v-stepper-content>
         </v-stepper>
-        <v-btn
-          v-if="isFinished()"
-          block
-          @click="processFinished"
-          
-        >
-          <v-icon color="blue">
-            mdi-check
-          </v-icon>
-          <span style="color:#3399ff;">处理完成</span>
-        </v-btn>
       </v-col>
     </v-row>
     <v-dialog v-model="getWeightDialog" persistent max-width="400px">
@@ -448,7 +481,7 @@
       errorInfo: '',
       errorList: ['身份证有误','余额不足','收件人信息有误','申报信息有误'],
       
-      vendorList: ['青岛中通','沈阳圆通'],
+      vendorList: ['新元快递','青岛中通','沈阳圆通'],
       vendor: '',
       showVendor: false,
 
@@ -545,6 +578,7 @@
       totalPrice: 0,
       totalUnit: 0,
       backupItemList: [],
+      littleant_trackingList: [],
     }),
 
     methods: {
@@ -568,18 +602,25 @@
         })
       },
 
-      printBarcode: function(){
+      printBarcode: function(item){
+        jsbarcode(
+            '#barcode',
+            item,
+            {
+              displayValue: true // 是否在条形码下方显示文字
+            }
+          )
         this.$print(this.$refs.print);
       },
 
       assignVendor: function(){
         //余额不足3美元无法分配
-        if(this.selectedPackage.balance < 3){
+        /* if(this.selectedPackage.balance < 3){
           this.snackbar = true;
           this.notification = '该用户余额不足';
           this.snackbarColor = 'red';
           return;
-        }
+        } */
         if(!this.vendor){
           this.snackbar = true;
           this.notification = '选择一个渠道';
@@ -642,11 +683,20 @@
       splitItems: function(item){
         this.splitItemDialog = true;
 
-        this.packedOneItem = {
-          id: item.id,
-          unit: 0,
-          description: item.brand + ' ' + item.item_name + ' $' + item.price,
-        }
+        this.$http.post('/api/insertPackageItems',{
+          packageId : this.selectedPackageId,
+          itemType : item.type,
+          itemName : item.item_name,
+          itemPrice : item.price,
+          itemCount : 0,
+          itemBrand : item.brand,
+        }).then( (res) => {
+          this.packedOneItem = {
+            id: res.data.insertId,
+            unit: 0,
+            description: item.brand + ' ' + item.item_name + ' $' + item.price,
+          }
+        })        
 
         this.splitIndex = this.userReportItemList.indexOf(item);
       },
@@ -657,13 +707,13 @@
           return;
         }
         this.splitItemDialog = false;
-        this.packedOneItem.unit = this.splitAmount;
-        this.splitAmount = 0;
+        
         //alert(JSON.stringify(this.userReportItemList[this.splitIndex]));
         let changeUnit = this.userReportItemList[this.splitIndex].unit - this.splitAmount;
-        this.userReportItemList.splice(this.splitIndex,1,{
-          
-        });
+        this.userReportItemList[this.splitIndex].unit = changeUnit;
+        this.packedOneItem.unit = this.splitAmount;
+        this.splitAmount = 0;
+        
         this.splitIndex = -1;
         this.getWeightDialog = true;
       },
@@ -773,13 +823,16 @@
           let insertChildOrderResult = new Promise((resolve, reject) => {
             this.$http.post('/api/insertChildOrder',{
               litlleant_package_id: this.selectedPackageId,
+              litlleant_package_number: this.selectedPackage.litlleant_tracking_number,
               vendor: this.vendor,
               weight: this.packedItemList[0].weight,
+              report_item_description: '全部打包',
             }).then( (res) => {
               for(let item of this.backupItemList){
                 this.$http.post('/api/updateReportItemChildOrder',{
                   childPackage_Id: res.data.insertId,
                   id: item.id,
+                  unit: item.unit,
                 }).then( (resk) => {
                   resolve(item.id);
                 })
@@ -789,16 +842,22 @@
           })
           this.totalPrice = (parseFloat((this.getChargeWeight(this.packedItemList[0].weight) * _rate).toFixed(2)) + _totalExtraCharge).toFixed(2);
           this.totalWeight = this.packedItemList[0].weight;
+          this.littleant_trackingList.push(this.selectedPackage.litlleant_tracking_number);
         }else{        //每个打包item生成一个child order
+          let index = 0;
           for(let item of this.packedItemList){
+            index = index + 1;
             let insertChildOrderResult = new Promise((resolve, reject) => {
               this.$http.post('/api/insertChildOrder',{
                 litlleant_package_id: this.selectedPackageId,
+                litlleant_package_number: this.selectedPackage.litlleant_tracking_number + index,
                 vendor: this.vendor,
                 weight: item.weight,
+                report_item_description: '包裹分拆',
               }).then( (res) => {
                 this.$http.post('/api/updateReportItemChildOrder',{
                   childPackage_Id: res.data.insertId,
+                  unit: item.unit,
                   id: item.id,
                 }).then( (resk) => {
                   resolve(item.id);
@@ -807,6 +866,7 @@
             })
             result.push(insertChildOrderResult);
             this.totalWeight = this.totalWeight + parseFloat(item.weight);
+            this.littleant_trackingList.push(this.selectedPackage.litlleant_tracking_number + index);
           }
           this.totalWeight = this.totalWeight.toFixed(2);
           this.totalPrice = (parseFloat((this.getChargeWeight(this.totalWeight) * _rate).toFixed(2)) + _totalExtraCharge).toFixed(2);
@@ -842,11 +902,7 @@
         result.push(updateTlaPackageResult);
         let promiseResult = await Promise.all(result);
         this.overlay = false;
-        this.snackbar = true;
-        this.notification = '处理成功,即将关闭窗口';
-        this.snackbarColor = 'green';
-
-        setTimeout( () => {this.closeWindow();},2000);
+        this.eStepper = 4;
       },
 
       closeWindow: function(){
@@ -857,6 +913,13 @@
         }
       },
 
+      finishAndClose: function(){
+        this.snackbar = true;
+        this.notification = '处理成功,即将关闭窗口';
+        this.snackbarColor = 'green';
+        setTimeout( () => {this.closeWindow();},1000);
+      },
+
       getAll: function(){
         if(this.selectedPackageId){
           this.$http.get('/api/getPackageInfoById',{
@@ -865,6 +928,10 @@
             }
           }).then( (res) => {
             this.selectedPackage = res.data[0];
+            if(this.selectedPackage.finishprocess_time != null){
+              alert('当前包裹已经处理过了，请返回检查并刷新页面');
+              return;
+            }
 
             //get user rate
             this.$http.get('/api/getUserRateByStorageNm',{
@@ -886,14 +953,6 @@
             }).then( (resk) => {
               this.userReportItemList = resk.data;
             })
-
-            jsbarcode(
-              '#barcode',
-              this.selectedPackage.litlleant_tracking_number,
-              {
-                displayValue: true // 是否在条形码下方显示文字
-              }
-            )
           })
 
 

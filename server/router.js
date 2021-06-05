@@ -334,8 +334,16 @@ router.get('/searchInfoByPackageId', (req, res, next) => {
   api.searchInfoByPackageId(req, res, next);  
 });
 
+router.get('/searchAllChildOrderWithNoMailBag', (req, res, next) => {
+  api.searchAllChildOrderWithNoMailBag(req, res, next);  
+});
+
 router.get('/searchInfo', (req, res, next) => {
   api.searchInfo(req, res, next);  
+});
+
+router.get('/countChildPackageNmInBag', (req, res, next) => {
+  api.countChildPackageNmInBag(req, res, next);  
 });
 
 

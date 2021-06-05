@@ -100,7 +100,7 @@
 							<v-btn
 								small
 								text
-								@click="deleteFromMailBag(item)"
+								@click="deleteDialog(item)"
 							>
 								删除
 							</v-btn>
@@ -128,7 +128,6 @@
 								small
 								close
 								v-if="item.vendor_tracking_number"
-								@click="toChildPackageInfo(item.id)"
 								close-icon="mdi-delete"
       					@click:close="deleteVendorTracking(item)"
 							>
@@ -321,6 +320,32 @@
         size="64"
       ></v-progress-circular>
     </v-overlay>
+		<v-dialog
+      v-model="deleteComfirm"
+      width="500"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          从邮袋中删除包裹
+        </v-card-title>
+        <v-card-text>
+          确认删除这个包裹？只会从邮袋中删除，包裹仍然在系统中
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="deleteFromMailBag()"
+          >
+            确定
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 	</v-container>
 </template>
 
@@ -350,7 +375,7 @@
 					{
 						sortable: false,
 						text: '小蚂蚁单号',
-						value: 'litlleant_tracking_number'
+						value: 'child_tracking_number'
 					},
 					{
 						sortable: false,
@@ -394,7 +419,7 @@
 					{
 						sortable: false,
 						text: '小蚂蚁单号',
-						value: 'litlleant_tracking_number'
+						value: 'child_tracking_number'
 					},
 					{
 						sortable: false,
@@ -416,6 +441,9 @@
 				allCols: ['收件人信息','包裹重量','包裹运费','包裹申报信息','包裹描述','小蚂蚁单号','服务商单号'],
 				filename: '发货单',
 				sheet:[],
+
+				deleteComfirm: false,
+				theDeletePackage: {},
       }
     },
 
@@ -427,10 +455,6 @@
           typeof value === 'string' &&
           value.toString().toLowerCase().indexOf(search.toLowerCase()) !== -1
       },
-
-			toChildPackageInfo: function(id){
-				this.$router.push({ path: '/admin/childpackage_info', query: {childPackageId: id}});
-			},
 
 			toPackageInfo: function(littleant_tracking){
 				this.$http.get('/api/existUserPackageByLittleAntTracking',{
@@ -518,16 +542,22 @@
 				this.getPackagesInMailBag();
 			},
 
+			deleteDialog: function(item){
+        this.deleteComfirm = true;
+        this.theDeletePackage = item;
+      },
+
 			//delete package from mailBag
-			deleteFromMailBag: function(item){
+			deleteFromMailBag: function(){
 				this.$http.post('/api/setPackageToMailBag',{
 					col: 'id',
-					colValue: item.id,
+					colValue: this.theDeletePackage.id,
 					bag_id: null,
 				}).then( (res) => {
           this.snackbar = true;
           this.notification = '删除成功';
           this.snackbarColor = 'green';
+					this.deleteComfirm = false;
           this.getPackagesInMailBag();
         })
 			},
@@ -604,10 +634,6 @@
 				}
 			},
 
-			/* gotoChildPackageInfo: function(item){
-				this.$router.push({ path: '/admin/childpackage_info', query: {childPackageId: item.id}});
-			}, */
-
 			focus(event) {
         event.currentTarget.select();
       },
@@ -666,7 +692,6 @@
           })
 				}
 			},
-
 
 			//excel操作
 			excelClick: function(index){
