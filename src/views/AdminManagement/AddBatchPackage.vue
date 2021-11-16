@@ -155,18 +155,7 @@
       },
 
       searchChanged: function(queryText){
-/*         if(!queryText){
-          //alert(queryText);
-          //this.components = [{"medname":"empty"}];
-          //return;
-        }
-        else if(queryText.length >= 2){
-          if(this.components.length == 0){
-            this.components = this.cacheAllUser;
-          }
-        }else{
-          this.components = [];
-        } */
+
       },
 
       customFilter (item, queryText, itemText) {
@@ -183,10 +172,10 @@
         this.overlay = true;
         for(let item of this.packageList){
           let batchPackageResult = new Promise((resolve, reject) => {
-            this.$http.post('/api/insertThirdPartyPackage',{
+            this.$http.post('/api/insertThirdPartyBatchPackage',{
               user_id : this.selectedUser,
-              user_defined_tracking : item.tracking,          
-              courier : '大货',
+              user_defined_tracking : item.tracking,
+              package_type : '大货',
               status : '已入库',
               instore_date : this.instoreDate,
             }).then( (res) => {
@@ -228,11 +217,7 @@
       },
 
       getBatchUser: function(){
-        this.$http.get('/api/getBatchUser',{
-          params: {
-            role: 'batch move user',
-          }
-        }).then( (res) => {
+        this.$http.get('/api/getBatchUser').then( (res) => {
           this.cacheAllUser = res.data;
         })
       }

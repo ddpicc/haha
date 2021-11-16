@@ -36,6 +36,7 @@
 								<li>B类: {{rateTable.classB_rate}}美元/lb</li>
 								<li>C类: {{rateTable.classC_rate}}美元/lb</li>
 								<li>D类: {{rateTable.classD_rate}}美元/lb</li>
+								<li>美国境内费率: {{rateTable.inbound_rate}}%</li>
 							</ul>
 						</div>
 					</v-card-text>
@@ -134,6 +135,20 @@
 								></v-text-field>
 							</v-col>
 						</v-row>
+						<v-row>
+							<v-col cols="4">
+								<v-subheader>美国境内转运费率</v-subheader>
+							</v-col>
+							<v-col cols="8">
+								<v-text-field
+									label="Amount"
+									value="0.00"
+									suffix="%"
+									v-model="inbound_rate"
+									@focus="focus($event)"
+								></v-text-field>
+							</v-col>
+						</v-row>
 						<v-btn
 							class="mr-4"
 							@click="confirm"
@@ -189,6 +204,7 @@
 			classB_rate: 0.00,
 			classC_rate: 0.00,
 			classD_rate: 0.00,
+			inbound_rate: 0.00,
 			rateId: '',
     }),
 
@@ -214,6 +230,7 @@
 				this.classB_rate = rateTable.classB_rate;
 				this.classC_rate = rateTable.classC_rate;
 				this.classD_rate = rateTable.classD_rate;
+				this.inbound_rate = rateTable.inbound_rate;
 				this.rateId = rateTable.id;
       },
 
@@ -223,6 +240,7 @@
 				this.classB_rate = 0;
 				this.classC_rate = 0;
 				this.classD_rate = 0;
+				this.inbound_rate = 0;
 				this.rateId = '';
 			},
 
@@ -247,6 +265,7 @@
 						classB_rate: this.classB_rate,
 						classC_rate: this.classC_rate,
 						classD_rate: this.classD_rate,
+						inbound_rate: this.inbound_rate,
             rateId: this.rateId,           
           }).then( (res) => {
             this.snackbar = true;
@@ -263,6 +282,7 @@
 						classB_rate: this.classB_rate,
 						classC_rate: this.classC_rate,
 						classD_rate: this.classD_rate,
+						inbound_rate: this.inbound_rate,
           }).then( (res) => {
             this.snackbar = true;
             this.notification = '增加成功';

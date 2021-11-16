@@ -1,21 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const api = require('./apis/defaultApi');
+const userapi = require('./apis/user');
+
 
 router.get('/getTokenFromLogin', (req, res, next) => {
-  api.getTokenFromLogin(req, res, next);
+  userapi.getTokenFromLogin(req, res, next);
 });
 
 router.get('/getUserInfo', (req, res, next) => {
-  api.getUserInfo(req, res, next);
+  userapi.getUserInfo(req, res, next);
 });
 
 router.get('/getUserInfoById', (req, res, next) => {
-  api.getUserInfoById(req, res, next);
+  userapi.getUserInfoById(req, res, next);
 });
 
 router.post('/updateUserRole', (req, res, next) => {
-  api.updateUserRole(req, res, next);
+  userapi.updateUserRole(req, res, next);
 });
 
 router.get('/getBatchUser', (req, res, next) => {
@@ -23,68 +25,37 @@ router.get('/getBatchUser', (req, res, next) => {
 });
 
 router.get('/getAllUser', (req, res, next) => {
-  api.getAllUser(req, res, next);
+  userapi.getAllUser(req, res, next);
 });
 
-router.post('/insertPackageItems', (req, res, next) => {
-  api.insertPackageItems(req, res, next);
-});
 
-router.post('/insertUserPackage', (req, res, next) => {
-  api.insertUserPackage(req, res, next);
-});
 
-router.post('/insertThirdPartyPackage', (req, res, next) => {
-  api.insertThirdPartyPackage(req, res, next);
-});
 
-router.post('/insertAdminReportItems', (req, res, next) => {
-  api.insertAdminReportItems(req, res, next);
-});
 
-router.post('/updateThirdPartyPackage', (req, res, next) => {
-  api.updateThirdPartyPackage(req, res, next);
-});
 
-router.post('/updateReportItems', (req, res, next) => {
-  api.updateReportItems(req, res, next);
-});
 
-router.delete('/deleteThirdPartyPackagebyId', (req, res, next) => {
-  api.deleteThirdPartyPackagebyId(req, res, next);
-});
 
-router.get('/getAllWaitPackage', (req, res, next) => {
-  api.getAllWaitPackage(req, res, next);
-});
 
-router.get('/getAllFinishPackage', (req, res, next) => {
-  api.getAllFinishPackage(req, res, next);
-});
+
+
+
+
 
 router.get('/getPackageInfoById', (req, res, next) => {
   api.getPackageInfoById(req, res, next);
 });
 
-router.get('/getAllThirdPartyPackage', (req, res, next) => {
-  api.getAllThirdPartyPackage(req, res, next);
-});
 
-router.get('/getThirdPartyPackageByUser', (req, res, next) => {
-  api.getThirdPartyPackageByUser(req, res, next);
-});
 
-router.post('/updateAdminReportItems', (req, res, next) => {
-  api.updateAdminReportItems(req, res, next);
-});
+
+
+
 
 router.post('/updateThirdPartyPackageStatus', (req, res, next) => {
   api.updateThirdPartyPackageStatus(req, res, next);
 });
 
-router.get('/getUserPackageByUser', (req, res, next) => {
-  api.getUserPackageByUser(req, res, next);
-});
+
 
 router.get('/existUserPackageByLittleAntTracking', (req, res, next) => {
   api.existUserPackageByLittleAntTracking(req, res, next);
@@ -94,9 +65,7 @@ router.get('/existStorageNumber', (req, res, next) => {
   api.existStorageNumber(req, res, next);
 });
 
-router.get('/existRecipient', (req, res, next) => {
-  api.existRecipient(req, res, next);
-});
+
 
 router.get('/existUserEmailOrPhone', (req, res, next) => {
   api.existUserEmailOrPhone(req, res, next);
@@ -106,17 +75,8 @@ router.get('/existUserPhone', (req, res, next) => {
   api.existUserPhone(req, res, next);
 });
 
-router.get('/getItemsByPackageId', (req, res, next) => {
-  api.getItemsByPackageId(req, res, next);
-});
 
-router.get('/getUserReportItemsByPackageId', (req, res, next) => {
-  api.getUserReportItemsByPackageId(req, res, next);
-});
 
-router.get('/getItemsInPackage', (req, res, next) => {
-  api.getItemsInPackage(req, res, next);
-});
 
 router.get('/getPackageById', (req, res, next) => {
   api.getPackageById(req, res, next);
@@ -134,9 +94,7 @@ router.post('/updateRecipientbyId', (req, res, next) => {
   api.updateRecipientbyId(req, res, next);
 });
 
-router.post('/insertRecipient', (req, res, next) => {
-  api.insertRecipient(req, res, next);
-});
+
 
 router.delete('/deleteRecipientbybyId', (req, res, next) => {
   api.deleteRecipientbybyId(req, res, next);
@@ -150,9 +108,7 @@ router.get('/getVendorTrackingByLittleAntNo', (req, res, next) => {
   api.getVendorTrackingByLittleAntNo(req, res, next);
 });
 
-router.post('/setPackageWeightandStatus', (req, res, next) => {
-  api.setPackageWeightandStatus(req, res, next);
-});
+
 
 //nihaopay notify 不知道是不是这样调用
 router.post('/nihaopay_notify', (req, res, next) => {
@@ -179,6 +135,11 @@ router.post('/verifyPhoneCode', (req, res, next) => {
   api.verifyPhoneCode(req, res, next);
 });
 
+//发送邮箱验证码
+router.get('/sendMailCode', (req, res, next) => {
+  api.sendMailCode(req, res, next);
+});
+
 //注册新用户
 router.post('/registerUser', (req, res, next) => {
   api.registerUser(req, res, next);
@@ -189,29 +150,17 @@ router.post('/updatePassword', (req, res, next) => {
   api.updatePassword(req, res, next);
 });
 
-router.get('/getInvoiceByUser', (req, res, next) => {
-  api.getInvoiceByUser(req, res, next);
-});
 
-router.get('/getAllInvoices', (req, res, next) => {
-  api.getAllInvoices(req, res, next);
-});
 
-router.get('/getDefinedTrackingById', (req, res, next) => {
-  api.getDefinedTrackingById(req, res, next);
-});
+
 
 router.delete('/deletePackagebybyId', (req, res, next) => {
   api.deletePackagebybyId(req, res, next);
 });
 
-router.post('/updateAdminItemCount', (req, res, next) => {
-  api.updateAdminItemCount(req, res, next);
-});
 
-router.delete('/deleteUserReportItem', (req, res, next) => {
-  api.deleteUserReportItem(req, res, next);
-});
+
+
 
 router.post('/deleteAdminItemAndChangeCount', (req, res, next) => {
   api.deleteAdminItemAndChangeCount(req, res, next);
@@ -316,34 +265,47 @@ router.get('/getAllExcelInfo', (req, res, next) => {
 });
 
 
-//生成child order
-router.post('/insertChildOrder', (req, res, next) => {
-  api.insertChildOrder(req, res, next);
-});
+
+
+
 
 //Set child order id到用户申报的物品
-router.post('/updateReportItemChildOrder', (req, res, next) => {
-  api.updateReportItemChildOrder(req, res, next);
-});
 
-router.get('/searchInfoByChildPackageId', (req, res, next) => {
-  api.searchInfoByChildPackageId(req, res, next);  
-});
 
-router.get('/searchInfoByPackageId', (req, res, next) => {
-  api.searchInfoByPackageId(req, res, next);  
-});
 
 router.get('/searchAllChildOrderWithNoMailBag', (req, res, next) => {
   api.searchAllChildOrderWithNoMailBag(req, res, next);  
 });
 
-router.get('/searchInfo', (req, res, next) => {
-  api.searchInfo(req, res, next);  
-});
 
 router.get('/countChildPackageNmInBag', (req, res, next) => {
   api.countChildPackageNmInBag(req, res, next);  
+});
+
+router.get('/getMailBagName', (req, res, next) => {
+  api.getMailBagName(req, res, next);  
+});
+
+
+
+router.post('/insertThirdPartyBatchPackage', (req, res, next) => {
+  api.insertThirdPartyBatchPackage(req, res, next);
+});
+
+router.get('/existChildPackageByChildTrackingNumber', (req, res, next) => {
+  api.existChildPackageByChildTrackingNumber(req, res, next);  
+});
+
+router.post('/setMailbagIdToNull', (req, res, next) => {
+  api.setMailbagIdToNull(req, res, next);
+});
+
+router.delete('/deleteMailBag', (req, res, next) => {
+  api.deleteMailBag(req, res, next);
+});
+
+router.get('/getVendorTracking', (req, res, next) => {
+  api.getVendorTracking(req, res, next);  
 });
 
 

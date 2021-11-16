@@ -56,14 +56,15 @@ DROP TABLE IF EXISTS `littleAnt_third_party_package`;
 
 CREATE TABLE `littleAnt_third_party_package` (
   `id` smallint(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` smallint(5) unsigned,
+  `storage_number` varchar(5) NOT NULL,
   /*预报包裹时填写的信息*/
-  `user_defined_tracking` varchar(30) NOT NULL,  /*客户单号*/
-  `courier` varchar(20),
-  `in_store_date` date,
+  `tracking` text NOT NULL,  /*客户单号*/
+  `comment` text,
+  `in_store_date` datetime,
   /*小蚂蚁包裹ID*/
   `package_Id` smallint(10) unsigned,
   `status` varchar(50) NOT NULL,
+  `service_type` varchar(8) NOT NULL DEFAULT '发往中国',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
@@ -95,6 +96,8 @@ CREATE TABLE `littleAnt_user_package` (
   `status` varchar(50) NOT NULL,
   `finishprocess_time` datetime,
   `admin_comment` text,
+  `package_type` varchar(8) NOT NULL DEFAULT '发往中国',
+  
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
@@ -108,7 +111,7 @@ CREATE TABLE `littleAnt_child_package` (
   `child_tracking_number` varchar(30),
   `vendor` varchar(20),
   `vendor_tracking_number` varchar(30),
-  
+  `file_url` varchar(50),
   /*管理员编辑信息*/
   `weight` float(10) NOT NULL DEFAULT 0,
   `bag_id` smallint(5) unsigned,
@@ -118,14 +121,15 @@ CREATE TABLE `littleAnt_child_package` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
-/* 包裹里的物品信息,管理员拍照录入*/
-DROP TABLE IF EXISTS `littleAnt_admin_report_items`;
+/* 包裹里的物品信息,包裹最小打包物品单元*/
+DROP TABLE IF EXISTS `littleAnt_minimalGroupItems_in_package`;
 
-CREATE TABLE `littleAnt_admin_report_items` (
+CREATE TABLE `littleAnt_minimalGroupItems_in_package` (
   `id` smallint(10) unsigned NOT NULL AUTO_INCREMENT,
   `third_party_packageId` smallint(10) unsigned,
   `package_Id` smallint(10) unsigned,
-  `item_name` varchar(30) NOT NULL,
+  `childPackage_Id` smallint(10) unsigned,
+  `itemTemplate_Id` smallint(10) unsigned,
   `item_count` smallint(5) NOT NULL DEFAULT 1,
   `pic1_url` varchar(50),
   `pic1_name` varchar(50),
@@ -137,17 +141,15 @@ CREATE TABLE `littleAnt_admin_report_items` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
-/* 用户申报的物品信息 */
-DROP TABLE IF EXISTS `littleAnt_user_report_items`;
+/*申报的物品模板信息 */
+DROP TABLE IF EXISTS `littleAnt_item_template`;
 
-CREATE TABLE `littleAnt_user_report_items` (
+CREATE TABLE `littleAnt_item_template` (
   `id` smallint(10) unsigned NOT NULL AUTO_INCREMENT,
-  `package_Id` smallint(10) unsigned,
-  `childPackage_Id` smallint(10) unsigned,
+  `barcode` text,
   `type` varchar(20),
   `item_name` varchar(30) NOT NULL,
   `price` float(10) NOT NULL DEFAULT 0,
-  `unit` smallint(5) NOT NULL DEFAULT 0,
   `brand` varchar(20),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -160,6 +162,7 @@ CREATE TABLE `littleAnt_user_invoice` (
   `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `invoice_type` varchar(20),
   `total` float(10) NOT NULL DEFAULT 0,
+  `prev_balance` float(10) NOT NULL DEFAULT 0,
   `user_sotrageNm` varchar(5) NOT NULL,
   `tracking_number` text,
   `memo` text,
@@ -177,6 +180,7 @@ CREATE TABLE `littleAnt_rate_table` (
   `classB_rate` float(10) NOT NULL DEFAULT 0,
   `classC_rate` float(10) NOT NULL DEFAULT 0,
   `classD_rate` float(10) NOT NULL DEFAULT 0,
+  `inbound_rate` float(10) NOT NULL DEFAULT 0,
   `memo` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -200,5 +204,32 @@ CREATE TABLE `littleAnt_mailbag` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
+/* 创建包裹预告列表*/
+DROP TABLE IF EXISTS `littleAnt_forcastList`;
+
+CREATE TABLE `littleAnt_forcastList` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `forcast_tracking` text,
+  `comment` text,
+  `storage_number` varchar(5) NOT NULL,
+  `service_type` varchar(20),
+  `arrive_at` datetime,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+
+DROP TABLE IF EXISTS `littleAnt_newsList`;
+
+CREATE TABLE `littleAnt_newsList` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `title` text,
+  `summary` text,
+  `content` text,
+  `created_at` datetime,
+  `update_at` datetime,
+  `stay_top` smallint(5) NOT NULL DEFAULT 0,
+  `to_storageNm` varchar(5) NOT NULL DEFAULT 'ALL',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 

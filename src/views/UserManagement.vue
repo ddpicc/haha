@@ -18,7 +18,7 @@
           <template v-slot:top>
             <v-text-field v-model="searchStr" label="搜索..." class="mx-4"></v-text-field>
           </template>
-          <template v-slot:item.action="{ item }">
+          <template v-if="this.$store.state.user.roles == 'admin'" v-slot:item.action="{ item }">
             <v-btn
               small
               class="mr-2"
@@ -31,9 +31,17 @@
               small
               class="mr-2"
               text
-              @click="chargeBalance(item.storage_number)"
+              @click="chargeBalance(item.storage_number,item.balance)"
             >
               扣费
+            </v-btn>
+            <v-btn
+              small
+              class="mr-2"
+              text
+              @click="addBalance(item.storage_number,item.balance)"
+            >
+              充值
             </v-btn>
           </template>
           </v-data-table>
@@ -58,7 +66,7 @@
                   required
                 ></v-text-field>
                 <v-text-field
-                  label="扣除费用（美元）"
+                  :label="balanceTitle"
                   v-model="chargeAmount"
                   required
                 ></v-text-field>
@@ -224,9 +232,11 @@
       notification: '',
       changeDialog: false,
       userRole: '',
-      roleList: ['admin','operator','default','premium','batch'],
+      roleList: ['admin','operator','default'],
       rateTableList: [],
       selectedRate: '',
+      balanceTitle: '扣除费用(美元)',
+      selectedUserBalance: '',
     }),
 
     methods: {
@@ -257,9 +267,20 @@
         })
       },
 
-      chargeBalance: function(storage_number){
+      chargeBalance: function(storage_number,currentBalance){
+        this.balanceTitle = '扣除费用(美元)';
         this.chargeDialog = true;
         this.selectedUserNm = storage_number;
+        this.selectedUserBalance = currentBalance
+        this.chargeAmount = 0;
+        this.trackingNm = '';
+      },
+
+      addBalance: function(storage_number,currentBalance){
+        this.balanceTitle = '充值数额(美元)';
+        this.chargeDialog = true;
+        this.selectedUserNm = storage_number;
+        this.selectedUserBalance = currentBalance
         this.chargeAmount = 0;
         this.trackingNm = '';
       },
@@ -278,20 +299,40 @@
         if(this.chargeAmount == 0){
           alert('请输入金额');
         }else{
-          this.$http.post('/api/userDeposit',{   
-            trackingNm: this.trackingNm,
-            chargeAmount: -1 * this.chargeAmount,
-            storage_number : this.selectedUserNm,
-            type: '运费',
-            comment: '手动调整',
-            created_at: getNowFormatDate(),
-          }).then( (res) => {
-            this.chargeDialog = false;
-            this.getAll();
-            this.snackbar = true;
-            this.notification = '扣费成功';
-            this.snackbarColor = 'green';
-          })
+          if(this.balanceTitle == '充值数额(美元)'){
+            this.$http.post('/api/userDeposit',{   
+              trackingNm: this.trackingNm,
+              chargeAmount: this.chargeAmount,
+              prev_balance: this.selectedUserBalance,
+              storage_number : this.selectedUserNm,
+              type: '充值',
+              comment: '手动调整',
+              created_at: getNowFormatDate(),
+            }).then( (res) => {
+              this.chargeDialog = false;
+              this.getAll();
+              this.snackbar = true;
+              this.notification = '充值成功';
+              this.snackbarColor = 'green';
+            })
+          }else{
+            this.$http.post('/api/userDeposit',{   
+              trackingNm: this.trackingNm,
+              chargeAmount: -1 * this.chargeAmount,
+              prev_balance: this.selectedUserBalance,
+              storage_number : this.selectedUserNm,
+              type: '运费',
+              comment: '手动调整',
+              created_at: getNowFormatDate(),
+            }).then( (res) => {
+              this.chargeDialog = false;
+              this.getAll();
+              this.snackbar = true;
+              this.notification = '扣费成功';
+              this.snackbarColor = 'green';
+            })
+          }
+          
         }
       },
 

@@ -7,6 +7,18 @@
     <v-row justify="center">
 			<v-col cols="4">
         <material-card>
+					<div class="overline mb-4">
+						交易记录(默认显示最近500条交易记录)
+						<v-chip
+							class="ml-8"
+							@click="loadAll"
+						>
+							<v-icon left>
+								mdi-sync
+							</v-icon>
+							读取全部
+						</v-chip>
+					</div>
 					<v-radio-group
 						v-model="type"
 						row
@@ -84,6 +96,7 @@
 
 							<v-list-item-action>
 								{{invoice.total}}元
+								<span v-text="balanceText(invoice)"></span>
 							</v-list-item-action>
 						</v-list-item>
 					</v-list>
@@ -108,19 +121,33 @@
 				let str = '';
 				if(invoice.invoice_type == '充值'){
 					str = str + ' -- ' + invoice.user_sotrageNm + ' -- ' + invoice.created_at;
+					str = str + '</br>' + invoice.memo;
 				}else{
 					str = invoice.tracking_number + ' -- ' + invoice.user_sotrageNm + ' -- ' + invoice.created_at;
 					str = str + '</br>' + invoice.memo;
 				}
 				return str;
 			},
+
+			balanceText: function(invoice) {
+				if(invoice.prev_balance == 0){
+					return '';
+				}
+				let str = '余额: '
+				let balance = invoice.prev_balance + invoice.total;
+				str = str + balance + '元'
+				return str;
+			},
 			
+			load500Invoices: function(){
+				this.$http.get('/api/invoice/getAllInvoices500Limits').then( (res) => {
+          this.invoiceList = res.data;
+					this.backupList = this.invoiceList;
+        })
+			},
+
 			loadAll: function(){
-				this.$http.get('/api/getAllInvoices',{
-					params: {
-						user_sotrageNm : this.$store.state.user.storage_number,
-					}
-				}).then( (res) => {
+				this.$http.get('/api/invoice/getAllInvoices').then( (res) => {
           this.invoiceList = res.data;
 					this.backupList = this.invoiceList;
         })
@@ -192,7 +219,7 @@
 		},
 
 		mounted: function(){
-			this.loadAll();
+			this.load500Invoices();
 			this.getAllUser();
 		}
 	}

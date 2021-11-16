@@ -11,6 +11,10 @@
 				md="8"
 			>
         <v-card class="mx-auto">
+					<v-col>
+						目前国内充值渠道不稳定，充值请联系客服<br>
+						quickpay或者paypal到账号admin@thelittleant.com
+					</v-col>
 					<v-row>
 						<v-col cols="3">
 							<v-subheader>充值账户</v-subheader>
@@ -80,8 +84,7 @@
 	</v-container>
 </template>
 
-<script>
-	import { getNowFormatDate } from '../utils/helpFunction';	
+<script>	
   export default {
     data: () => ({
 			paymentMethodList: ['Nihao Pay(微信支付)', 'Nihao Pay(银联支付)'],

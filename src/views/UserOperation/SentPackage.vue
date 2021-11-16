@@ -10,16 +10,41 @@
           class="mx-auto"
           rounded
         >          
-          <div class="overline mb-4 ml-2">已选物品</div>
+          <div class="overline mb-4 ml-2">
+            {{itemTitle()}}
+          </div>
           <v-simple-table>
             <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    名称
+                  </th>
+                  <th class="text-left">
+                    品牌
+                  </th>
+                  <th class="text-left">
+                    数量
+                  </th>
+                  <th class="text-left">
+                    图片
+                  </th>
+                  <th class="text-left">
+                    图片
+                  </th>
+                  <th class="text-left">
+                    图片
+                  </th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="item in selectedItems" :key="item.id">
-                  <td v-if="item.item_count > 1"><p>{{item.item_name}} ({{item.item_count}}件)</p></td>
-                  <td v-if="item.item_count == 1"><p>{{item.item_name}}</p></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic1_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item.pic1_url,0)"></v-img></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic2_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item.pic2_url,1)"></v-img></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic3_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item.pic3_url,2)"></v-img></td>
+                  <td><p>{{item.item_name}}</p></td>
+                  <td><p>{{item.brand}}</p></td>
+                  <td ><p>{{item.item_count}}件</p></td>
+                  <td v-if="item.pic1_url == undefined"><v-img :src='"https://image.endlessflora.com/" + item.pic1_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,0)"></v-img></td>
+                  <td v-if="item.pic2_url"><v-img :src='"https://image.endlessflora.com/" + item.pic2_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,1)"></v-img></td>
+                  <td v-if="item.pic3_url"><v-img :src='"https://image.endlessflora.com/" + item.pic3_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,2)"></v-img></td>
                 </tr>
               </tbody>
             </template>
@@ -45,111 +70,7 @@
         </v-card>
       </v-col>
       
-      <v-col cols="12">
-        <material-card fullWidth color="grey darken-1" >
-          <template v-slot:header>
-            <div class="px-3">
-              <div class="title font-weight-light mb-2">
-                包裹内件明细
-              </div>
-            </div>
-						<v-spacer />   
-            <v-btn
-              absolute
-              dark
-              fab
-              bottom
-              right
-              color="amber"
-              @click="openInputItem"
-            >
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
-          </template>
-          <v-form
-            v-if="inputItem"
-            ref="itemForm"
-            v-model="valid"
-            lazy-validation
-          >
-            <v-container>
-              <v-row>
-                <v-col
-                  cols="6"
-                  md="4"
-                >
-                  <v-select
-                    v-model="itemType"
-                    :items="itemTypeList"
-                    label="类别"
-                    required
-                  ></v-select>
-                  <v-text-field
-                    v-model="itemPrice"
-                    :rules="[v => !!v || 'Item is required']"
-                    label="申报单价(USD)"
-                    required
-                  ></v-text-field>
-                </v-col>
-                <v-col
-                  cols="6"
-                  md="4"
-                >
-                  <v-text-field
-                    v-model="itemName"
-                    :rules="[v => !!v || 'Item is required']"
-                    label="物品描述"
-                    required
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="itemCount"
-                    :counter="5"
-                    :rules="[v => !!v || 'Item is required']"
-                    label="数量"
-                    required
-                  ></v-text-field>
-                </v-col>
-                <v-col
-                  cols="6"
-                  md="4"
-                >
-                  <v-text-field
-                    v-model="itemBrand"
-                    label="品牌"
-                    required
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12">
-                  <div class="d-flex  mb-6">
-                    <v-btn color="blue" dark class="mr-2" @click="confirm">确认</v-btn>
-                    <v-btn color="blue" dark class="mr-2" @click="cancel">取消</v-btn>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-form>
-          <v-data-table
-            :headers="headers"
-            :items="packageItem"
-            item-key="itemName"
-            :items-per-page="10"
-            no-data-text="当前还未申报物品"
-            hide-default-footer
-          >
-          <template v-slot:item.action="{ item }">
-            <v-icon
-              small
-              @click="deleteItem(item)"
-            >
-              mdi-close
-            </v-icon>
-          </template>
-          </v-data-table>
-        </material-card>
-      </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" v-if="method == '发往中国'">
 				<v-card>
 					<v-card-text>
 						<v-container>
@@ -166,7 +87,34 @@
 					</v-card-actions>
 				</v-card>
 			</v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" v-if="method == '美国境内'">
+        <material-card dense fullWidth color="grey darken-1">
+          <template v-slot:header>
+            <div class="px-3">
+              <div class="title font-weight-light mb-2">
+                如果已有发货面单，请上传PDF格式的面单。如果没有，需填写收件人信息
+              </div>
+            </div>
+          </template>
+          <v-select
+            v-model="inUSvendor"
+            :items="inUSvendorList"
+            label="服务商"
+          ></v-select>
+          <v-file-input
+            show-size
+            accept=".pdf"
+            label="File input"
+            v-model="chosenFile"
+          ></v-file-input>
+          <div>已上传 {{uploadedName}}</div>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn right @click="uploadFile">上传</v-btn>
+          </v-card-actions>
+        </material-card>
+      </v-col>
+      <v-col cols="12" md="6" v-if="method == '发往中国' || method == '美国境内'">
         <material-card dense fullWidth color="grey darken-1">
           <template v-slot:header>
             <div class="px-3">
@@ -219,6 +167,30 @@
           </v-form>
         </material-card>
       </v-col>
+      <v-col cols="12" v-if="method == '仓库自提'">
+        <material-card dense fullWidth color="grey darken-1">
+          <template v-slot:header>
+            <div class="px-3">
+              <div class="title font-weight-light mb-2">
+                自提人联系方式
+              </div>
+            </div>
+          </template>
+          <v-form
+            ref="addressForm"
+            v-model="valid"
+            lazy-validation
+          >
+            <v-col cols="12" sm="12" md="6">
+              <v-text-field label="姓名*" v-model="recipientName" required :rules="[v => !!v || 'Item is required']"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="6">
+              <div> USA +1</div><v-text-field label="手机号码*" v-model="recipientPhone" :rules="[v => !!v || 'Item is required']"></v-text-field>
+            </v-col>
+          </v-form>
+        </material-card>
+      </v-col>
+            
     </v-row> 
     <v-row justify="center">
       <v-col cols="12">
@@ -363,14 +335,7 @@
       selectedItems: [],
       batchPackages: [],
       selectRecipientDialog: false,
-      inputItem: false,
       valid: true,
-      itemType: '',
-      itemTypeList: ['鞋类','奶粉','保健品','零食','日用品','衣服','玩具','化妆品','箱包','电子产品','手表'],
-      itemName: '',
-      itemPrice: '',
-      itemCount: '',
-      itemBrand: '',
       recipientName: '',
       phoneCode: 'China +86',
       phoneCodeList: ['China +86', 'USA +1'],
@@ -419,75 +384,17 @@
         },
       ],
       recipientItems: [],
-      packageItem: [],
-      headers: [
-        {
-          sortable: false,
-          text: '类别',
-          value: 'model_en'
-        },
-        {
-          sortable: false,
-          text: '物品描述',
-          value: 'description'
-        },
-        {
-          sortable: false,
-          text: '申报单价',
-          value: 'unit_price',
-        },
-        {
-          sortable: false,
-          text: '数量',
-          value: 'amount'
-        },
-        {
-          sortable: true,
-          text: '品牌',
-          value: 'brand_en',
-        },
-        {
-          sortable: false,
-          text: '操作',
-          value: 'action',
-        }
-      ],
       confirmDialog: false,
       overlay: false,
+
+      method: '',
+      inUSvendor: '',
+      inUSvendorList: ['UPS','USPS','FEDEX'],
+      chosenFile: null,
+      domain: 'https://upload-na0.qiniup.com',
     }),
 
     methods: {
-      openInputItem: function(){
-        //open item form
-        this.inputItem = true;
-      },
-
-      confirm: function(){
-        //if item form is valid
-        if(this.$refs.itemForm.validate()){
-          this.packageItem.push({
-            model_en: this.itemType,
-            description: this.itemName,
-            unit_price: this.itemPrice,
-            unit_price_currency: 'USD',
-            amount: this.itemCount,
-            brand_en: this.itemBrand
-          })
-          this.$refs.itemForm.reset();
-        }              
-      },
-
-      //close item form, clear items
-      cancel: function(){
-        this.$refs.itemForm.reset();
-        this.inputItem = false;
-      },
-
-      deleteItem: function(item){
-        var index = this.packageItem.indexOf(item);
-        this.packageItem.splice(index, 1);
-      },
-
       parseAddress: function(){
         let id_cardArray = this.regAddress.match(/(\d{15}$)|(\d{18}$)|(\d{17}(\d|X|x)$)/);
         let parseStr = '';
@@ -513,12 +420,6 @@
       },
 
       openConfirmDialog: function(){
-        //verify item is typed in        
-        if(this.packageItem.length == 0){
-          alert('请先申报物品');
-          return;
-        }
-
         //verify address is not empty
         if(!this.$refs.addressForm.validate()){
           alert('请填写收件人信息');
@@ -560,7 +461,7 @@
         let litlleant_tracking_number = await this.getUseableLittleAntTracking();
         let result = [];
 
-        this.$http.post('/api/insertUserPackage',{
+        this.$http.post('/api/package/insertUserPackage',{
             user_id: this.$store.state.user.user_id,
             litlleant_tracking_number: litlleant_tracking_number,
             created_at: getNowFormatDate(),
@@ -576,9 +477,11 @@
             recipientState : this.recipientState,            
             recipientZip : this.recipientZip,
             packageStatus : "待处理",
+            package_type: this.method,
           }).then( async (res) => {
+            //检查是否有相同的收件人，没有的话创建一个新的在数据库
             let insertRecipientResult = new Promise((resolve, reject) => {
-              this.$http.get('/api/existRecipient',{
+              this.$http.get('/api/user/existRecipient',{
                 params: {
                   name : this.recipientName,
                   phone : this.recipientPhone,
@@ -586,7 +489,7 @@
                 }
               }).then((res) => {
                 if(res.data.length === 0){
-                  this.$http.post('/api/insertRecipient',{
+                  this.$http.post('/api/user/insertRecipient',{
                     userId : this.$store.state.user.user_id,          
                     recipientName : this.recipientName,
                     countryCode : this.phoneCode,
@@ -606,18 +509,19 @@
             })
             result.push(insertRecipientResult);
 
+            //更新包裹内物品信息
             if(this.selectedItems){
               for(let kitem of this.selectedItems){
-                let adminItemsResult = new Promise((resolve, reject) => {
-                  //insert new
-                    //update old count
+                let updateItemsResult = new Promise((resolve, reject) => {
+                  //商品的一开始清点数量记录在total_unit,item_count是用户选择发货的数量，如果没有全部打包，
+                  //则应该更新本来item的数量，并创建一个新item指向这个package，orginal_itemid指向老item
                   if(kitem.item_count > 0 && kitem.item_count < kitem.total_unit){
-                    this.$http.post('/api/updateAdminItemCount',{
+                    this.$http.post('/api/item/createNewItemUpdateOldItem',{
                       update_count : -1 * kitem.item_count,
                       item_id: kitem.id,
                       third_party_packageId: kitem.third_party_packageId,
                       package_Id: res.data.insertId,
-                      item_name: kitem.item_name,
+                      itemTemplate_Id: kitem.itemTemplate_Id,
                       item_count: kitem.item_count,
                       pic1_url: kitem.pic1_url,
                       pic1_name: kitem.pic1_name,
@@ -629,7 +533,7 @@
                       resolve(1);
                     })
                   }else{
-                    this.$http.post('/api/updateAdminReportItems',{
+                    this.$http.post('/api/item/updateItemSetPackageId',{
                       packageId : res.data.insertId,
                       id: kitem.id,
                     }).then((res) => {
@@ -637,15 +541,16 @@
                     })
                   }                
                 })
-                result.push(adminItemsResult);
+                result.push(updateItemsResult);
               }
             }
             
-            for(let pkgId of this.passedInContent.selectedPackages){
+            //更新第三方包裹的状态
+            for(let fullSelectedPackage of this.passedInContent.selectedPackages){
               let updateThirdPartyPkgResult = new Promise((resolve, reject) => {
                 this.$http.post('/api/updateThirdPartyPackageStatus',{
                   status: '已全部打包',
-                  third_party_packageId : pkgId,
+                  third_party_packageId : fullSelectedPackage.id,
                   user_packageId: res.data.insertId,
                 }).then( (res) => {
                   resolve(2);
@@ -653,31 +558,27 @@
               })
               result.push(updateThirdPartyPkgResult);
             }
-            for(let item of this.packageItem) {
-              let insertPackageItemsResult = new Promise((resolve, reject) => {
-                this.$http.post('/api/insertPackageItems',{
-                  packageId : res.data.insertId,
-                  itemType : item.model_en,
-                  itemName : item.description,
-                  itemPrice : parseFloat(item.unit_price),
-                  itemCount : item.amount,
-                  itemBrand : item.brand_en,
+
+            //更新第三方包裹状态，对于部分打包的，只会保存最后让其达到全部打包状态的package id
+            for(let partSelectedPackage of this.passedInContent.partPackages){
+              let updatePartThirdPartyPkgResult = new Promise((resolve, reject) => {
+                this.$http.post('/api/updateThirdPartyPackageStatus',{
+                  status: '部分打包',
+                  third_party_packageId : partSelectedPackage.id,
+                  user_packageId: res.data.insertId,
                 }).then( (res) => {
                   resolve(3);
                 })
               })
-              result.push(insertPackageItemsResult);
+              result.push(updatePartThirdPartyPkgResult);
             }
+
             let promiseResult = await Promise.all(result);
             this.overlay = false;
             this.snackbar = true;
             this.notification = '发货单创建成功,跳转回我的包裹';
             this.snackbarColor = 'green';
-            if(this.$store.state.user.roles != 'batch move user'){
-              setTimeout( () => {this.$router.push({ path: '/package/mypackage' });},2000);
-            }else{
-              setTimeout( () => {this.$router.push({ path: '/package/batch_mypackage' });},2000);
-            }
+            setTimeout( () => {this.$router.push({ path: '/package/mypackage' });},2000);
             
           })
       },
@@ -720,30 +621,63 @@
           this.recipientItems = res.data;
         })
         this.selectRecipientDialog = true;
-      }
+      },
+
+      itemTitle: function(){
+        let str = '';
+        if(this.passedInContent.selectedPackages.length > 0){
+          str = str + '整个包裹: '
+        }
+        for(let fullSelectedPackage of this.passedInContent.selectedPackages){
+          str = str +  fullSelectedPackage.tracking ;
+        }
+
+        if(this.passedInContent.partPackages.length > 0){
+          str = str + '部分包裹: '
+        }
+        for(let partSelectedPackage of this.passedInContent.partPackages){
+          str = str +  partSelectedPackage.tracking ;
+        }
+        if(str != ''){
+          str = '(' + str + ')';
+        }
+        return '已选物品' + str;
+      },
+
+      uploadFile: function(){
+        const config = {
+          headers: {'Content-Type': 'multipart/form-data'}
+        }
+        //alert(this.chosenFile);
+        this.$http.get('/api/qiniuToken').then(res => {
+          const formData = new FormData();
+          formData.append('file', this.chosenFile);
+          formData.append('key', 'ds1d'); // key 文件名处理，这样的话七牛会识别文件时什么类型
+          formData.append('token', res.data);
+            this.$http.post(this.domain, formData, config, {
+
+            })
+        })
+      },
     },
 
 
     mounted: function() {
       if(this.passedInContent){
         this.selectedItems = this.passedInContent.items;
-        //大货，只显示包裹
-        if(!this.selectedItems){
-          for(let third_party_packageId of this.passedInContent.selectedPackages){
-            this.$http.get('/api/getDefinedTrackingById',{
-              params: {
-                packageId : third_party_packageId,
-              }
-            }).then( (res) => {
-              this.batchPackages.push(res.data[0]['user_defined_tracking']);
-            })
-          }
-        }
-      }else{
+        //合并重复的，如果有的话
+        this.selectedItems = this.selectedItems.reduce((total, cur, index) => {
+        　let hasValue = total.findIndex(current => { return current.id === cur.id});
+        　hasValue === -1 && total.push(cur);
+        　hasValue !== -1 && (total[hasValue].item_count = parseInt(total[hasValue].item_count) + parseInt(cur.item_count));
+        　return total;
+        }, [])
+        this.method = this.passedInContent.method;
+      }else{        
         this.snackbar = true;
         this.notification = '你还没有选择物品，清先选择一个物品';
         this.snackbarColor = 'green';
-        setTimeout( () => {this.$router.push({ path: '/mypackage' });},3000);
+        setTimeout( () => {this.$router.push({ path: '/package/mypackage' });},3000);
       }
     },
 

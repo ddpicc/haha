@@ -85,6 +85,7 @@
           <v-data-table
 						:headers="headers"
 						:items="mailBagPackageList"
+						dense
 						class="elevation-1"
 						item-key="id"
 						show-expand
@@ -105,12 +106,12 @@
 								删除
 							</v-btn>
 						</template>
-						<template v-slot:item.litlleant_tracking_number="{ item }">
+						<template v-slot:item.child_tracking_number="{ item }">
 							<span
-								style="text-decoration: underline;"
-								@click="toPackageInfo(item.litlleant_tracking_number)"
+								class="blue--text text-decoration-underline"
+								@click="toPackageInfo(item.child_tracking_number)"
 							>
-								{{item.litlleant_tracking_number}}
+								{{item.child_tracking_number}}
 							</span>
 						</template>
 						<template v-slot:item.vendor_tracking_number="{ item }">
@@ -141,7 +142,7 @@
 										<tbody>
 											<tr :colspan="headers.length" v-for="userItem in item.userItems" :key="userItem.id">
 												<td :colspan="headers.length">
-													申报物品: {{userItem.item_name}}  数量{{userItem.unit}} 价钱 {{userItem.price}} 品牌 {{userItem.brand}}
+													申报物品: {{userItem.item_name}}  数量{{userItem.item_count}} 价钱 {{userItem.price}} 品牌 {{userItem.brand}}
 												</td>
 											</tr>
 										</tbody>
@@ -456,13 +457,13 @@
           value.toString().toLowerCase().indexOf(search.toLowerCase()) !== -1
       },
 
-			toPackageInfo: function(littleant_tracking){
-				this.$http.get('/api/existUserPackageByLittleAntTracking',{
+			toPackageInfo: function(child_tracking_number){
+				this.$http.get('/api/existChildPackageByChildTrackingNumber',{
 					params: {
-						littleant_tracking: littleant_tracking,
+						child_tracking_number: child_tracking_number,
 					}
 				}).then( (res) => {
-					this.$router.push({ path: '/admin/package_info', query: {packageId: res.data[0].id}});
+					this.$router.push({ path: '/admin/package_info', query: {packageId: res.data[0].litlleant_package_id}});
 				})
 			},
 
@@ -475,23 +476,28 @@
 				let trackingList = this.trackingArea.split('\n');
 				for(let i=0; i<trackingList.length; i++){
 					let scanPackageResult = new Promise((resolve, reject) => {
-						this.$http.get('/api/existUserPackageByLittleAntTracking',{
+						this.$http.get('/api/existChildPackageByChildTrackingNumber',{
 							params: {
-								littleant_tracking: trackingList[i],
+								child_tracking_number: trackingList[i],
 							}
 						}).then( (res) => {
-							this.$http.post('/api/setPackageToMailBag',{
-								col: 'litlleant_package_id',
-								colValue: res.data[0].id,
-								bag_id: this.mailBag_id,
-							}).then( (res) => {
-								if(res.data.affectedRows == 1){
-									this.msgList.push(trackingList[i] + ' 成功');
-								}else{
-									this.msgList.push(trackingList[i] + ' 失败，请检查');
-								}
+							if(res.data.length == 0){
+								this.msgList.push(trackingList[i] + ' 该单号不存在，请检查');
 								resolve(trackingList[i]);
-							})
+							}else{
+								this.$http.post('/api/setPackageToMailBag',{
+									col: 'id',
+									colValue: res.data[0].id,
+									bag_id: this.mailBag_id,
+								}).then( (res) => {
+									if(res.data.affectedRows == 1){
+										this.msgList.push(trackingList[i] + ' 成功');
+									}else{
+										this.msgList.push(trackingList[i] + ' 失败，请检查');
+									}
+									resolve(trackingList[i]);
+								})
+							}							
 						})
 					})
 					result.push(scanPackageResult);
@@ -580,7 +586,7 @@
 				}).then( (res) => {
           this.mailBagPackageList = res.data;
 					for(let item of this.mailBagPackageList){
-						this.$http.get('/api/getUserReportItemsByChildId',{
+						this.$http.get('/api/package/getItemsByChildId',{
 							params: {
 								childPackage_Id : item.id,
 							}
@@ -730,9 +736,9 @@
 					}
 				}).then( (resk) => {
 					this.sheet.push({
-						tHeader:["单号","渠道","重量","小蚂蚁单号","收件人","电话","身份证","地址","城市","省份","申报物品类型","名称","价钱","数量","品牌"],
+						tHeader:["小蚂蚁单号","国内快递单号","渠道","重量","收件人","电话","身份证","地址","城市","省份","申报物品类型","名称","价钱","数量","品牌"],
 						table: resk.data,
-						keys:["vendor_tracking_number","vendor","weight","litlleant_tracking_number","to_name","to_phone","to_identity_card","to_address","to_city","to_state","type","item_name","price","unit","brand"],
+						keys:["child_tracking_number","vendor_tracking_number","vendor","weight","to_name","to_phone","to_identity_card","to_address","to_city","to_state","type","item_name","price","unit","brand"],
 						sheetName:"发货单"
 					})
 					this.$refs.excelExport.pikaExportExcel()

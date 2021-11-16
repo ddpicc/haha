@@ -74,7 +74,7 @@
                   justify="center"
                 >
                   <v-col
-                    class="white--text text-center"
+                    class="white--text text-"
                     cols="12"
                     tag="h1"
                   >
@@ -315,7 +315,6 @@
                 <v-list-item-content>
                   <v-list-item-title class="title font-weight-light mb-5">
                     客服邮箱： admin@thelittleant.com  <br>
-                    客服电话：   <br>
                     公司地址： 100 E Scotland Dr，Suite 105A， Bear，DE 19701
                   </v-list-item-title>
                 </v-list-item-content>
@@ -484,143 +483,63 @@
           if(res.data.length === 0){
             this.trackingInfo.statusList.push('运单不存在');
           }else{
+            let lta_id = '';
             //运单存在，先获取运单所在的batch
             this.trackingInfo.statusList.push('运单已创建，等待库房处理');
             if(res.data[0].finishprocess_time != null){
               this.trackingInfo.statusList.push('库房正在处理 (' + res.data[0].finishprocess_time + ')');
               this.trackingInfo.statusList.push('库房打包完成 (' + res.data[0].finishprocess_time + ')');
             }
-            this.$http.get('/api/getMailBagStatusByLtaTracking',{
-              params: {
-                lta_tracking : this.queryPackageNm,
-              }
-            }).then( (res) => {
-              let displayChildOrder = false;
-              if(res.data[0].created_at != null){
-                this.trackingInfo.statusList.push('库房正在处理 (' + res.data[0].created_at + ')');
-              }
-              if(res.data[0].finishprocess_time != null){
-                this.trackingInfo.statusList.push('库房打包完成 (' + res.data[0].finishprocess_time + ')');
-              }
-              if(res.data[0].sendOut_at != null){
-                this.trackingInfo.statusList.push('扫入邮袋，送往机场，等待起飞 (' + res.data[0].sendOut_at + ')');
-              }
-              if(res.data[0].flyToChina_at != null){
-                this.trackingInfo.statusList.push('包裹发往中国 (' + res.data[0].flyToChina_at + ')');
-              }
-              if(res.data[0].beginCustomerClear_at != null){
-                this.trackingInfo.statusList.push('包裹到达海关，开始清关 (' + res.data[0].beginCustomerClear_at + ')');
-              }
-              if(res.data[0].customerFinish_at != null){
-                this.trackingInfo.statusList.push('清关完成，开始配送 (' + res.data[0].customerFinish_at + ')');
-                displayChildOrder = true;
-              }
-              //展示所有的child order
-              if(displayChildOrder){
-                for(let item of res.data){
-                  this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + item.vendor_tracking_number + "'" + "style='color:red' target='_blank'>" + item.vendor_tracking_number + '</a>' + ')');
+            if(res.data[0].to_country_code == 'USA +1'){
+              lta_id = res.data[0].id;
+              this.$http.get('/api/getVendorTracking',{
+                params: {
+                  package_id : lta_id,
                 }
-              }
-              /* if(result.data.waybill_list[0].express_tracking_number){
-                this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + result.data.waybill_list[0].express_tracking_number + "'" + "style='color:red' target='_blank'>" + result.data.waybill_list[0].express_tracking_number + '</a>' + ')');
-              } */
-            })
-          }
-        })
-        /* this.trackingInfo.statusList = [];
-        if(this.queryPackageNm === ''){
-          alert('请先输入发货单号');
-          return;
-        }
-
-        if(this.queryPackageNm === 'TLA63623163XK'){
-          this.displayTackingInfo = true;
-          this.trackingInfo.statusList.push('库房正在处理(2021/2/25 上午11:20:32)');
-          this.trackingInfo.statusList.push('库房打包完成(2021/2/25 上午11:23:16)');
-          this.trackingInfo.statusList.push('扫入邮袋，送往机场，等待起飞(2021/2/25 下午4:36:45)');
-          this.trackingInfo.statusList.push('包裹发往中国(2021/2/27 上午7:12:08)');
-          return;
-        }
-        this.$http.get('/api/getVendorTrackingByLittleAntNo',{
-          params: {
-            littleant_tracking : this.queryPackageNm,
-          }
-        }).then( async (res) => {
-          this.displayTackingInfo = true;
-          if(res.data.length === 0){
-            this.trackingInfo.statusList.push('运单不存在');
-          }else{
-            let vendor = res.data[0]['vendor'];
-            let vendorTracking = res.data[0]['vendor_tracking_number'];
-            this.trackingInfo.statusList.push('运单已创建，等待库房处理');
-            this.trackingInfo.statusList.push('库房正在处理');
-            this.trackingInfo.statusList.push('库房打包完成');
-            if(vendorTracking == ''){
-              this.trackingInfo.statusList.push('运单已创建，等待库房处理');
+              }).then( (res) => {
+                this.trackingInfo.statusList.push('包裹已交付' + res.data[0].vendor + ' (' + res.data[0].vendor_tracking_number + ')');
+              })
             }else{
-              if(vendor == 'Junan'){  //跨境  君安
-                let result = await invoke_junanApi('query',{
-                  local_code: vendorTracking,
-                  need_waybill_state_detail: 'true',
-                });
-                if(result.code === 'LOCAL_DELIVERY_ORDER_NOT_FOUND'){
-                  this.trackingInfo.statusList.push('运单不存在');
-                }else if(result.code === 'LOCAL_DELIVERY_ORDER_WAIT_FOR_PROCESS'){
-                  this.trackingInfo.statusList.push('运单已创建，等待库房处理');
-                }else if(result.code === 'LOCAL_DELIVERY_ORDER_RECEIVED_EXCEPTION'){
-                  this.trackingInfo.statusList.push('包裹收件异常');
-                  this.trackingInfo.statusList.push('身份证号未提供或者错误');
+              this.$http.get('/api/getMailBagStatusByLtaTracking',{
+                params: {
+                  lta_tracking : this.queryPackageNm,
                 }
-                else{
-                  if(result.data.waybill_list.length == 1){
-                    let historyList = result.data.waybill_list[0].history_list;
-                    for(let line of historyList){
-                      let utctime = line.history_time;
-                      let commonTime = new Date(utctime * 1000).toLocaleString();
-                      this.trackingInfo.statusList.push(line.state_text + '(' + commonTime + ')');
-                    }
-                    if(result.data.waybill_list[0].express_tracking_number){
-                      this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + result.data.waybill_list[0].express_tracking_number + "'" + "style='color:red' target='_blank'>" + result.data.waybill_list[0].express_tracking_number + '</a>' + ')');
-                    }
-                  }else{
-                    let display = 2;
-                    let historyList = result.data.waybill_list[0].history_list;
-                    for(let line of historyList){
-                      if(display > 0){
-                        let utctime = line.history_time;
-                        let commonTime = new Date(utctime * 1000).toLocaleString();
-                        this.trackingInfo.statusList.push(line.state_text + '(' + commonTime + ')');
-                        display = display - 1;
-                      }
-                    }
-                    this.trackingInfo.statusList.push('包裹拆分 (发递单数量：' + result.data.waybill_list.length + ')');
-                    let index = 1;
-                    for(let waybill of result.data.waybill_list){
-                      let ingore = 2;  //如果拆分了，前面两个状态文字共用
-                      let historyList = waybill.history_list;
-                      for(let line of historyList){
-                        if(ingore > 0){
-                          ingore = ingore - 1;
-                          continue;
-                        }
-                        let utctime = line.history_time;
-                        let commonTime = new Date(utctime * 1000).toLocaleString();
-                        this.trackingInfo.statusList.push('发递单[' + index + ']' + line.state_text + '(' + commonTime + ')');
-                      }
-                      if(waybill.express_tracking_number){
-                        this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + waybill.express_tracking_number + "'" + "style='color:red' target='_blank'>" + waybill.express_tracking_number + '</a>' + ')');
-                      }
-                      index = index + 1;
-                    }              
+              }).then( (res) => {
+                let displayChildOrder = false;
+                if(res.data[0].created_at != null){
+                  this.trackingInfo.statusList.push('库房正在处理 (' + res.data[0].created_at + ')');
+                }
+                if(res.data[0].finishprocess_time != null){
+                  this.trackingInfo.statusList.push('库房打包完成 (' + res.data[0].finishprocess_time + ')');
+                }
+                if(res.data[0].sendOut_at != null){
+                  this.trackingInfo.statusList.push('扫入邮袋，送往机场，等待起飞 (' + res.data[0].sendOut_at + ')');
+                }
+                if(res.data[0].flyToChina_at != null){
+                  this.trackingInfo.statusList.push('包裹发往中国 (' + res.data[0].flyToChina_at + ')');
+                }
+                if(res.data[0].beginCustomerClear_at != null){
+                  this.trackingInfo.statusList.push('包裹到达海关，开始清关 (' + res.data[0].beginCustomerClear_at + ')');
+                }
+                if(res.data[0].customerFinish_at != null){
+                  this.trackingInfo.statusList.push('清关完成，开始配送 (' + res.data[0].customerFinish_at + ')');
+                  displayChildOrder = true;
+                }
+                //展示所有的child order
+                if(displayChildOrder){
+                  for(let item of res.data){
+                    if(item.vendor_tracking_number){
+                      this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + item.vendor_tracking_number + "'" + "style='color:red' target='_blank'>" + item.vendor_tracking_number + '</a>' + ')');
+                    }                    
                   }
                 }
-              }else{   //境内转运
-                this.trackingInfo.statusList.push('境内转运单号：' + vendorTracking + ' (' + vendor + ') ');
-              }
-              
+                /* if(result.data.waybill_list[0].express_tracking_number){
+                  this.trackingInfo.statusList.push('国内快递单号 (' + "<a href='https://www.baidu.com/s?wd=" + result.data.waybill_list[0].express_tracking_number + "'" + "style='color:red' target='_blank'>" + result.data.waybill_list[0].express_tracking_number + '</a>' + ')');
+                } */
+              })
             }
           }
-        }) */
+        })
       }
     }
   }

@@ -67,71 +67,41 @@
           class="mx-auto"
           rounded
         >          
-          <div class="overline mb-4 ml-2">申报内件明细
-            <v-chip
-              class="ma-2"
-              outlined
-              small
-              v-if="selectedPackage.status == '待处理'"
-              @click="openReportInfoDialog()"
-            >
-              <v-icon left>
-                mdi-card-plus
-              </v-icon>
-              添加
-            </v-chip>
-          </div>
+          <div class="overline mb-4 ml-2">内件明细</div>
           <v-data-table
             :headers="headers"
-            :items="userReportItemList"
+            :items="itemList"
             item-key="itemName"
             :items-per-page="10"
             no-data-text="当前还未申报物品"
             hide-default-footer
-          >
-          <template v-if="selectedPackage.status == '待处理'" v-slot:item.action="{ item }">
-            <v-icon
-              small
-              @click="openReportInfoDialog(item)"
-            >
-              mdi-pencil
-            </v-icon>
-            <v-icon
-              small
-              class="ml-5"
-              @click="deleteReportItem(item)"
-            >
-              mdi-close
-            </v-icon>
-          </template>
+            show-expand
+            single-expand
+            :expanded.sync="expanded"
+					>
+						<template v-slot:expanded-item="{ item }">
+							<td :colspan="8">
+								<v-simple-table>
+									<template v-slot:default>
+										<tbody>
+											<tr >
+												<td style="width:25%"><v-img :src='"https://image.endlessflora.com/" + item.pic1_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,0)"></v-img></td>
+												<td style="width:25%"><v-img :src='"https://image.endlessflora.com/" + item.pic2_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,1)"></v-img></td>
+												<td style="width:25%"><v-img :src='"https://image.endlessflora.com/" + item.pic3_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,2)"></v-img></td>
+											</tr>
+										</tbody>
+									</template>
+								</v-simple-table>
+							</td>
+						</template>
           </v-data-table>
-        </v-card>
-      </v-col>
-      <v-col v-if="this.$store.state.user.roles != 'default'" cols="12">
-        <v-card
-          class="mx-auto"
-          rounded
-        >          
-          <div class="overline mb-4 ml-2">包裹内物品图片</div>
-          <v-simple-table>
-            <template v-slot:default>
-              <tbody>
-                <tr v-for="item in itemList" :key="item.id">
-                  <td><p>{{item.item_name}} ({{item.item_count}}件)</p></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic1_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,0)"></v-img></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic2_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,1)"></v-img></td>
-                  <td><v-img :src='"https://image.endlessflora.com/" + item.pic3_url' dark max-width="70" style="cursor: pointer;" @click="previewImg(item,2)"></v-img></td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
         </v-card>
       </v-col>
 
       <v-col cols="12" class="d-inline-flex justify-end">
         <v-spacer></v-spacer>
         <v-btn color="blue darken-1" text @click="cancel">返回</v-btn>
-        <v-btn v-if="selectedPackage.status == '待处理'" color="blue darken-1" text @click="deleteDialog">删除</v-btn>
+        <!-- v-btn v-if="selectedPackage.status == '待处理'" color="blue darken-1" text @click="deleteDialog">删除</v-btn -->
       </v-col>
     </v-row>
     <v-snackbar
@@ -243,7 +213,7 @@
       width="800"
     >
       <v-card>
-        <v-card-title class="headline">
+        <v-card-title class="">
           修改收件人信息
         </v-card-title>
         <v-card-text>
@@ -329,102 +299,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="reportInfoDialog"
-      width="1000"
-      persistent
-    >
-      <v-card>
-        <v-card-title class="headline">
-          {{reortInfoDialogTitle}}
-        </v-card-title>
-        <v-card-text>
-          
-          <v-form
-            ref="itemForm"
-            v-model="valid"
-            lazy-validation
-          >
-            <v-container>
-              <v-row>
-                <v-col
-                  cols="6"
-                  md="2"
-                >
-                  <v-select
-                    v-model="itemType"
-                    :items="itemTypeList"
-                    label="类别"
-                    :rules="requiredRule"
-                  ></v-select>
-                </v-col>
-                <v-col
-                  cols="6"
-                  md="3"
-                >
-                  <v-text-field
-                    v-model="itemName"
-                    label="物品描述"
-                    :rules="requiredRule"
-                  ></v-text-field>
-                </v-col>
-                <v-col
-                  cols="6"
-                  md="3"
-                >
-                  <v-text-field
-                    v-model="itemBrand"
-                    label="品牌"
-                    :rules="requiredRule"
-                  ></v-text-field>
-                </v-col>
-                <v-col
-                  cols="6"
-                  md="2"
-                >
-                  <v-text-field
-                    v-model="itemPrice"
-                    :rules="requiredRule"
-                    label="申报单价(USD)"
-                  ></v-text-field>
-                </v-col>                
-                <v-col
-                  cols="6"
-                  md="2"
-                >
-                  <v-text-field
-                    v-model="itemCount"
-                    :counter="5"
-                    :rules="requiredRule"
-                    label="数量"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-form>
-        </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="updateReportInfo"
-          >
-            更新
-          </v-btn>
-          <v-btn
-            color="primary"
-            text
-            @click="cancelReportInfo"
-          >
-            取消
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -438,7 +312,7 @@
       valid: true,
       editInfoDialog: false,
       editRecipientDialog: false,
-      reportInfoDialog: false,
+      expanded: [],
       headers: [
         {
           sortable: false,
@@ -458,20 +332,15 @@
         {
           sortable: false,
           text: '数量',
-          value: 'unit'
+          value: 'item_count'
         },
         {
           sortable: true,
           text: '品牌',
           value: 'brand',
         },
-        {
-          sortable: false,
-          text: '操作',
-          value: 'action',
-        }
       ],
-      userReportItemList: [],
+      itemList: [],
       //recipient
       recipientName: '',
       phoneCode: 'China +86',
@@ -490,19 +359,6 @@
       //package info
       packageDescription: '',
       packageComment: '',
-
-      //
-      itemList: [],
-
-      //add user report items
-      reortInfoDialogTitle: '添加物品申报信息',
-      selectedReportItem: {},
-      itemType: '',
-      itemTypeList: ['鞋类','奶粉','保健品','零食','日用品','衣服','玩具','化妆品','箱包','电子产品','手表'],
-      itemName: '',
-      itemPrice: '',
-      itemCount: '',
-      itemBrand: '',
 
 
       selectedPackage: {},
@@ -615,82 +471,6 @@
         this.clearEditRecipientDialog();
       },
 
-      openReportInfoDialog: function(item){
-        this.reportInfoDialog = true;
-        if(item){
-          this.reortInfoDialogTitle = '修改物品申报信息';
-          this.selectedReportItem = item;
-          this.itemType = item.type;
-          this.itemName = item.item_name;
-          this.itemPrice = item.price;
-          this.itemCount = item.unit;
-          this.itemBrand = item.brand;
-        }
-      },
-
-      clearReportInfoDialog: function(){
-        this.reortInfoDialogTitle = '添加物品申报信息';
-        this.selectedReportItem = {};
-        this.itemType = '';
-        this.itemName = '';
-        this.itemPrice = '';
-        this.itemCount = '';
-        this.itemBrand = '';
-      },
-
-      updateReportInfo: function(){
-        if(this.reortInfoDialogTitle === '修改物品申报信息'){   //修改
-          this.$http.post('/api/updateUserReportItems',{
-            itemType : this.itemType,
-            itemName : this.itemName,
-            itemPrice : parseFloat(this.itemPrice),
-            itemCount : this.itemCount,
-            itemBrand : this.itemBrand,
-            id: this.selectedReportItem.id,            
-          }).then( (res) => {
-            this.snackbar = true;
-            this.notification = '修改成功';
-            this.snackbarColor = 'green';
-            this.reportInfoDialog = false;
-            this.clearReportInfoDialog();
-            this.getAll();
-          })
-        }else{    //增加
-          this.$http.post('/api/insertPackageItems',{
-            packageId : this.selectedPackageId,
-            itemType : this.itemType,
-            itemName : this.itemName,
-            itemPrice : parseFloat(this.itemPrice),
-            itemCount : this.itemCount,
-            itemBrand : this.itemBrand,
-          }).then( (res) => {
-            this.snackbar = true;
-            this.notification = '增加成功';
-            this.snackbarColor = 'green';
-            this.reportInfoDialog = false;
-            this.getAll();
-          })
-        }
-      },
-
-      cancelReportInfo: function(){
-        this.reportInfoDialog = false;
-        this.clearReportInfoDialog();
-      },
-
-      deleteReportItem: function(item){
-        this.$http.delete('/api/deleteUserReportItem',{
-          params: {
-            itemId : item.id
-          }
-        }).then( (res) => {
-          this.notification = '删除成功';
-          this.snackbarColor = 'green';
-          this.reportInfoDialog = false;
-          this.getAll();
-        })
-      },
-
       deleteDialog: function(item){
         this.deleteComfirm = true;
       },
@@ -738,7 +518,7 @@
           })
           result.push(updateThirdPartyPkgResult);
         }
-        for(let item of this.userReportItemList) {
+        for(let item of this.itemList) {
           let deleteUserReportItemsResult = new Promise((resolve, reject) => {
             this.$http.delete('/api/deleteUserReportItem',{
               params: {
@@ -773,14 +553,7 @@
         if(this.selectedPackageId){
           this.allPackedList = [];
           let dict = [];
-          this.$http.get('/api/getUserReportItemsByPackageId',{
-            params: {
-              packageId : this.selectedPackageId,
-            }
-          }).then( (resk) => {
-            this.userReportItemList = resk.data;
-          })
-          this.$http.get('/api/getItemsInPackage',{
+          this.$http.get('/api/item/getItemsByPackageId',{
             params: {
               packageId : this.selectedPackageId,
             }
@@ -788,7 +561,7 @@
             this.itemList = resSec.data;
             if(this.itemList.length != 0){
               for(let item of this.itemList){
-                this.$http.get('/api/getDefinedTrackingById',{
+                this.$http.get('/api/package/getTrackingByThirdPartyPackageId',{
                   params: {
                     packageId : item.third_party_packageId,
                   }

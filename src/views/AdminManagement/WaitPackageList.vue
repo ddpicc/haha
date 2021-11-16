@@ -12,17 +12,19 @@
           tile
         >
           <v-toolbar>
-            <v-chip @click="filterPackage('国际')" class="mr-3">待处理中国转运:  {{waitChinaPackageNm}}</v-chip>
-            <v-chip @click="filterPackage('境内')" class="mr-3">待处理美国境内:  {{waitUSPackageNm}}</v-chip>
+            <v-chip @click="filterPackage('发往中国')" class="mr-3">发往中国:  {{waitChinaPackageNm}}</v-chip>
+            <v-chip @click="filterPackage('美国境内')" class="mr-3">美国境内:  {{waitUSPackageNm}}</v-chip>
+            <v-chip @click="filterPackage('仓库自提')" class="mr-3">仓库自提:  {{waitSelfPackageNm}}</v-chip>
             <v-spacer></v-spacer>
-            <v-chip @click="filterUserPackage(1)" color="deep-purple lighten-2" dark class="mr-3">小蚂蚁用户</v-chip>            
-            <v-chip @click="filterUserPackage(2)" color="blue lighten-2" dark class="mr-3">sherry用户</v-chip>    
+            <v-chip @click="filterUserPackage(1)"  dark class="mr-3">小蚂蚁用户</v-chip>            
+            <v-chip @click="filterUserPackage(2)"  dark class="mr-3">sherry用户</v-chip>    
           </v-toolbar>
         </v-card>
       </v-col>
       <v-col cols="12">
         <material-card>
           <v-data-table
+            dense
             :headers="headers"
             :items="items"
             item-key="id"
@@ -54,6 +56,7 @@
           <template v-slot:item.storage_number="{ item }">
             <v-chip :color="getColor(item.role)" dark>{{ item.storage_number }}</v-chip>
           </template>
+          
           <template v-slot:expanded-item="{ item }">
             <td :colspan="3">
               <h5>收件人： {{item.to_name}}</h5>
@@ -131,7 +134,7 @@
         {
           sortable: true,
           text: '类型',
-          value: 'type'
+          value: 'package_type'
         },
         {
           sortable: false,
@@ -145,7 +148,7 @@
         },
         {
           sortable: false,
-          text: '第三方单号',
+          text: '包裹描述',
           value: 'package_description'
         },
         {
@@ -184,6 +187,7 @@
       theDeletePackage: {},
       waitUSPackageNm: 0,
       waitChinaPackageNm: 0,
+      waitSelfPackageNm: 0,
     }),
 
     methods: {
@@ -197,6 +201,7 @@
         }        
       },
 
+
       //搜索
       filterText (value, search, item) {
         return value != null &&
@@ -207,14 +212,21 @@
 
       // 获取所有包裹
       getAll: function() {
-        this.$http.get('/api/getAllWaitPackage').then( (res) => {
+        this.$http.get('/api/package/getAllWaitPackage').then( (res) => {
           this.items = res.data;
+          for(let item of this.items){
+            if(item.package_description.length > 50){
+              item.package_description = item.package_description.substr(0,50);
+            }
+            
+          }
           this.backupItems = this.items;
           for(let item of this.items){
-            item.type = item.to_country_code == 'USA +1'? '境内' : '国际';
 
-            if(item.type == '境内'){
+            if(item.package_type == '美国境内'){
               this.waitUSPackageNm = this.waitUSPackageNm + 1;
+            }else if(item.package_type == '仓库自提'){
+              this.waitSelfPackageNm = this.waitSelfPackageNm + 1;
             }else{
               this.waitChinaPackageNm = this.waitChinaPackageNm + 1;
             }
@@ -231,11 +243,8 @@
 
       editOrder: function(packageItem){
         //this.$router.push({ name: '包裹详情', params: {selectedPackage: packageItem}});
-        if(packageItem.to_country_code == 'USA +1'){
-          var newpage = this.$router.resolve({path: '/admin/package_processing', query: {packageId: packageItem.id}})
-        }else{
-          var newpage = this.$router.resolve({path: '/admin/process_package', query: {packageId: packageItem.id}})
-        }
+
+        var newpage = this.$router.resolve({path: '/admin/process_package', query: {packageId: packageItem.id}})
         
         window.open(newpage.href,'_blank')
       },

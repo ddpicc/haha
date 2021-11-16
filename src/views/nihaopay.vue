@@ -16,7 +16,7 @@ export default {
 			let vendor = 'WechatPay';
 			if(this.$route.params.method == 'Nihao Pay(银联支付)'){
 			//if(this.$route.query.method == 'Nihao Pay(支付宝支付)'){
-				vendor = 'unionpay';
+				vendor = 'Unionpay';
 			}
 			let payData = {
 				//'amount': this.$route.query.amount,

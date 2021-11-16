@@ -1,4 +1,9 @@
 const routerApi = require('./router');
+const packageApi = require('./routers/packageRouter');
+const itemApi = require('./routers/itemRouter');
+const userApi = require('./routers/userRouter');
+const invoiceApi = require('./routers/invoiceRouter');
+const newsApi = require('./routers/newsRouter');
 const express = require('express');
 const bodyParser = require("body-parser")
 const schedule = require("node-schedule");
@@ -19,8 +24,14 @@ app.all("*",(req,res,next) => {
 
 // 后端api路由
 app.use('/api', routerApi);
+app.use('/api/package',packageApi);
+app.use('/api/item',itemApi);
+app.use('/api/user',userApi);
+app.use('/api/invoice',invoiceApi);
+app.use('/api/news',newsApi);
 
 app.get('/api/qiniuToken', (req, res, next) => {
+  console.log('generate qiniu token');
   res.status(200).send(qnconfig.generateUploadToken());
 });
 

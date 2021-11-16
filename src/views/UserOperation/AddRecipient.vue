@@ -97,7 +97,7 @@
 
 <script>
   import AddressParse from 'zh-address-parse'
-  import {USStates, CNStates, CNCity} from '../utils/helpFunction'
+  import {USStates, CNStates, CNCity} from '../../utils/helpFunction'
   export default {
     data: () => ({
       snackbar: false,

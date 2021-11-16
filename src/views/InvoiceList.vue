@@ -12,11 +12,10 @@
 						two-line
 					>
 						<div class="overline mb-4">
-							交易记录
+							交易记录(默认显示最近7天的交易记录)
 							<v-chip
 								class="ml-8"
 								@click="loadAll"
-								v-if="isSuperAdmin"
 							>
 								<v-icon left>
 									mdi-sync
@@ -46,6 +45,7 @@
 
 							<v-list-item-action>
 								{{invoice.total}}元
+								<span v-text="balanceText(invoice)"></span>
 							</v-list-item-action>
 						</v-list-item>
 					</v-list>
@@ -56,6 +56,7 @@
 </template>
 
 <script>
+	import { dateToString } from '../utils/helpFunction';
   export default {
     data: () => ({
 			invloceList: [],
@@ -64,9 +65,13 @@
 
 		methods: {
 			getAll: function() {
-        this.$http.get('/api/getInvoiceByUser',{
+				var end = dateToString(new Date());
+        var start = dateToString(new Date(new Date().setDate(new Date().getDate()-6)));
+        this.$http.get('/api/invoice/getInvoiceByUserDateRange',{
 					params: {
 						user_sotrageNm : this.$store.state.user.storage_number,
+						startDate: start,
+						endDate: end,
 					}
 				}).then( (res) => {
           this.invloceList = res.data;
@@ -84,9 +89,19 @@
 					str = str + ' ------- ' + invoice.user_sotrageNm + ' (' + invoice.memo + ')';
 				return str;
 			},
+
+			balanceText: function(invoice) {
+				if(invoice.prev_balance == 0){
+					return '';
+				}
+				let str = '余额: '
+				let balance = invoice.prev_balance + invoice.total;
+				str = str + balance + '元'
+				return str;
+			},
 			
 			loadAll: function(){
-				this.$http.get('/api/getAllInvoices',{
+				this.$http.get('/api/invoice/getAllInvoiceByUser',{
 					params: {
 						user_sotrageNm : this.$store.state.user.storage_number,
 					}
@@ -98,13 +113,6 @@
 
 		mounted: function(){
 			this.getAll();
-			this.$http.get('/api/getUserInfoById',{
-        params: {
-          userId : this.$store.state.user.user_id,
-        }
-      }).then( (res) => {
-        this.isSuperAdmin = res.data[0].is_superadmin;
-      })
 		}
 	}
 </script>

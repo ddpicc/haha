@@ -72,19 +72,9 @@
           text: '管理员首页'
         },
         {
-          to: '/admin/all_invoice',
-          icon: 'mdi-home',
-          text: '所有账单'
-        },
-        {
-          to: '/add_package',
+          to: '/admin/preprocess_package',
           icon: 'mdi-plus-box-multiple-outline',
-          text: '添加包裹'
-        },
-        {
-          to: '/add_batch_package',
-          icon: 'mdi-plus-box-multiple-outline',
-          text: '添加大货包裹'
+          text: '预处理包裹'
         },
         {
           to: '/admin/mailbag_list',
@@ -92,7 +82,7 @@
           text: '邮袋列表'
         },
         {
-          to: '/package/new_order',
+          to: '/package/forcast',
           icon: 'mdi-plus-box-multiple-outline',
           text: '预报包裹'
         },
@@ -107,11 +97,6 @@
           text: '我的包裹'
         },
         {
-          to: '/package/batch_mypackage',
-          icon: 'mdi-package-variant',
-          text: '我的包裹'
-        },
-        {
           to: '/waitpackage_list',
           icon: 'mdi-package',
           text: '待处理包裹'
@@ -120,11 +105,6 @@
           to: '/finishpackage_list',
           icon: 'mdi-package',
           text: '已处理包裹'
-        },
-        {
-          to: '/user_list',
-          icon: 'mdi-account-group',
-          text: '用户列表'
         },
       ]
   export default {

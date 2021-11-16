@@ -12,17 +12,16 @@
           tile
         >
           <v-toolbar>
-            <v-chip @click="filterPackage('国际')" class="mr-3">已处理中国转运:  {{waitChinaPackageNm}}</v-chip>
-            <v-chip @click="filterPackage('境内')" class="mr-3">已处理美国境内:  {{waitUSPackageNm}}</v-chip>
-            <v-spacer></v-spacer>
-            <v-chip color="blue lighten-2" dark class="mr-3">默认用户</v-chip>            
-            <v-chip color="deep-purple lighten-2" dark class="mr-3">进阶用户</v-chip>    
+            <v-chip @click="filterPackage('发往中国')" class="mr-3">发往中国:  {{waitChinaPackageNm}}</v-chip>
+            <v-chip @click="filterPackage('美国境内')" class="mr-3">美国境内:  {{waitUSPackageNm}}</v-chip>
+            <v-chip @click="filterPackage('仓库自提')" class="mr-3">仓库自提:  {{waitSelfPackageNm}}</v-chip>
           </v-toolbar>
         </v-card>
       </v-col>
       <v-col cols="12">
         <material-card>
           <v-data-table
+            dense
             :headers="headers"
             :items="items"
             item-key="id"
@@ -131,7 +130,7 @@
         {
           sortable: true,
           text: '类型',
-          value: 'type'
+          value: 'package_type'
         },
         {
           sortable: false,
@@ -142,11 +141,6 @@
           sortable: false,
           text: '小蚂蚁单号',
           value: 'litlleant_tracking_number'
-        },
-        {
-          sortable: false,
-          text: '第三方单号',
-          value: 'package_description'
         },
         {
           sortable: true,
@@ -183,6 +177,7 @@
       theDeletePackage: {},
       waitUSPackageNm: 0,
       waitChinaPackageNm: 0,
+      waitSelfPackageNm: 0,
     }),
 
     methods: {
@@ -206,13 +201,13 @@
 
       // 获取所有包裹
       getAll: function() {
-        this.$http.get('/api/getAllFinishPackage').then( (res) => {
+        this.$http.get('/api/package/getAllFinishPackage').then( (res) => {
           this.items = res.data;
           for(let item of this.items){
-            item.type = item.to_country_code == 'USA +1'? '境内' : '国际';
-
-            if(item.type == '境内'){
+            if(item.package_type == '美国境内'){
               this.waitUSPackageNm = this.waitUSPackageNm + 1;
+            }else if(item.package_type == '仓库自提'){
+              this.waitSelfPackageNm = this.waitSelfPackageNm + 1;
             }else{
               this.waitChinaPackageNm = this.waitChinaPackageNm + 1;
             }
@@ -224,11 +219,7 @@
       },
 
       gotoPackageInfo: function(item){
-        if(item.to_country_code == 'USA +1'){
-          this.$router.push({ path: '/admin/package_processing', query: {packageId: item.id}});
-        }else{
-          this.$router.push({ path: '/admin/package_info', query: {packageId: item.id}});
-        }        
+        this.$router.push({ path: '/admin/package_info', query: {packageId: item.id}});
       },
 
       deleteDialog: function(item){

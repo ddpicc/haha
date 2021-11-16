@@ -25,10 +25,11 @@
         class="mx-0"
       >
 
-<!--         <v-menu
+        <v-menu
           bottom
           left
           offset-y
+          open-on-hover
           transition="slide-y-transition"
         >
           <template v-slot:activator="{ attrs, on }">
@@ -65,7 +66,7 @@
             </v-list>
             <v-btn block color="blue-grey" dark class="mb-3">全部删除</v-btn>
           </v-card>
-        </v-menu> -->
+        </v-menu>
         
         <v-btn
           @click="Gotrack"
@@ -93,11 +94,6 @@
   export default {
     data: () => ({
       notifications: [
-        'Mike, John responded to your email',
-        'You have 5 new tasks',
-        'You\'re now a friend with Andrew',
-        'Another Notification',
-        'Another One'
       ],
       title: null,
       responsive: false,

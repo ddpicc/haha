@@ -35,6 +35,10 @@
 									<td>{{userPackage[0].package_description}}</td>
 									<td>包裹备注</td>
 									<td>{{userPackage[0].package_comment}}</td>
+								</tr>
+								<tr>
+									<td>原始包裹信息</td>
+									<td>{{thirdPartyPackageInfo}}</td>
 								<tr>
 									<td>渠道</td>
 									<td>{{userPackage[0].vendor}}</td>
@@ -109,7 +113,7 @@
 								</tr>
 								<tr>
 									<td>邮袋组</td>
-									<td>{{item.bag_id}}</td>
+									<td @click="toMailBag(item.bag_id,item.bag_name,item.bag_vendor,item.bag_status)" class="blue--text text-decoration-underline">{{item.bag_names}}</td>
 									<td>重量</td>
 									<td>{{item.weight}}</td>
 								</tr>
@@ -135,12 +139,10 @@
 								</tr>
 							</thead>
 							<tbody class="text-center">
-								<tr
-									
-								>
+								<tr>
 									<td>{{item.item_name}}</td>
 									<td>{{item.brand}}</td>
-									<td>{{item.unit}}</td>
+									<td>{{item.item_count}}</td>
 									<td>{{item.price}}</td>
 								</tr>
 							</tbody>
@@ -164,6 +166,7 @@
 				userPackage: [],
 				packageId: '',
 				isPackageSplit: '整个包裹',
+				thirdPartyPackageInfo: [],
 			}
 		},
 
@@ -173,28 +176,63 @@
       },
 
 			getInfo: function(){
-					this.$http.get('/api/searchInfoByPackageId',{
-						params: {
-							package_Id : this.packageId,
+				//need update
+				this.$http.get('/api/package/getChildOrderByPackageId',{
+					params: {
+						package_Id : this.packageId,
+					}
+				}).then( (res) => {
+					this.userPackage = res.data;
+					if(this.userPackage.length > 1){
+						this.isPackageSplit = '分拆包裹';
+					}
+
+					for(let item of this.userPackage){
+						this.$http.get('/api/getMailBagName',{
+							params: {
+								bag_id : item.bag_id,
+							}
+						}).then( (res) => {
+							this.$set(item,'bag_names',res.data[0].name)
+							this.$set(item,'bag_vendor',res.data[0].vendor)
+							this.$set(item,'bag_status',res.data[0].status)
+						})
+
+						this.$http.get('/api/package/getItemsByChildId',{
+							params: {
+								childPackage_Id : item.id,
+							}
+						}).then( (res) => {
+							this.$set(item,'items',res.data)
+						})
+
+						this.$http.get('/api/package/getTrackingByThirdPartyPackageId',{
+							params: {
+								packageId : item.third_party_packageId,
+							}
+						}).then( (res) => {
+							this.thirdPartyPackageInfo.push(res.data[0].tracking);
+						})
+					}
+					
+					
+					jsbarcode(
+						'#barcode',
+						this.userPackage[0].litlleant_tracking_number,
+						{
+							displayValue: true // 是否在条形码下方显示文字
 						}
-					}).then( (res) => {
-						this.userPackage = res.data;
-						if(this.userPackage.length > 1){
-							this.isPackageSplit = '分拆包裹';
-						}
-						jsbarcode(
-              '#barcode',
-              this.userPackage[0].litlleant_tracking_number,
-              {
-                displayValue: true // 是否在条形码下方显示文字
-              }
-            )
-					})
-			
+					)
+				})
+
 			},
 
 			goback: function(){
 				this.$router.push({ path: '/finishpackage_list' });
+			},
+
+			toMailBag: function(mailBag_id, mailBag_name, mailBag_vendor, mailBag_status) {
+				this.$router.push({ path: '/admin/mailbag_operation', query: {mailBagId: mailBag_id, mailBagName: mailBag_name, mailBagVendor: mailBag_vendor, mailBagStatus: mailBag_status}});
 			}
 		},
 

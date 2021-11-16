@@ -1,9 +1,10 @@
 const mysql = require('mysql');
 var async = require("async");
-const dbConfig = require('../db');
-const sqlMap = require('../sqlMaps/sqlMap');
-const userSqlMap = require('../sqlMaps/userManagementSqlMap');
+const dbConfig = require('../db/db');
+const sqlMap = require('../sqlMaps/defaultSqlMap');
+const userSqlMap = require('../sqlMaps/userSqlMap');
 const twilio_util = require('../utils/twilioConfig');
+const mail_util = require('../utils/nodemailer')
 var crypto = require('crypto');
 var md5 = crypto.createHash('md5');
 
@@ -91,68 +92,7 @@ function execTrans(sqlparamsEntities, callback) {
 };
 
 module.exports = {
-  getTokenFromLogin(req, res, next) {
-    console.log('api - getTokenFromLogin');
-    var email = req.query.username,password = req.query.password;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getTokenFromLogin;
-      connection.query(sql, [email,password], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  getUserInfo(req, res, next) {
-    console.log('api - getUserInfo');
-    var token = req.query.token;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getUserInfo;
-      connection.query(sql, [token], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  getUserInfoById(req, res, next) {
-    console.log('api - getUserInfoById');
-    var id = req.query.userId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getUserInfoById;
-      connection.query(sql, [id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  updateUserRole(req, res, next) {
-    console.log('api - updateUserRole');
-    var role = req.body.role, plan_startdate = req.body.startDate;
-    var storage_number = req.body.storage_number;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.updateUserRole;
-      connection.query(sql, [role,plan_startdate,storage_number], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
   
   getBatchUser(req, res, next) {
     console.log('api - getBatchUser');
@@ -170,169 +110,20 @@ module.exports = {
     })
   },
 
-  getAllUser(req, res, next) {
-    console.log('api - getAllUser');
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getAllUser;
-      connection.query(sql, (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  insertPackageItems(req, res, next) {
-    console.log('api - insertPackageItems');
-    var package_id = req.body.packageId,type = req.body.itemType;
-    var item_name = req.body.itemName,price = req.body.itemPrice;
-    var unit = req.body.itemCount, brand = req.body.itemBrand;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.insertPackageItems;
-      connection.query(sql, [package_id,type,item_name,price,unit,brand], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
   
-  insertUserPackage(req, res, next) {
-    console.log('api - insertUserPackage');
-    var user_id = req.body.user_id, litlleant_tracking_number = req.body.litlleant_tracking_number;
-    var created_at = req.body.created_at,package_description = req.body.package_description;
-    var package_comment = req.body.package_comment,total = req.body.total;
-    var name = req.body.recipientName,country_code = req.body.countryCode;
-    var phone = req.body.recipientPhone, identity_card = req.body.recipientIdentityCard;
-    var address = req.body.recipientAddress;
-    var city = req.body.recipientCity, state = req.body.recipientState;
-    var zip = req.body.recipientZip, status = req.body.packageStatus;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.insertUserPackage;
-      connection.query(sql, [user_id,litlleant_tracking_number,created_at,package_description,package_comment,total,name,country_code,phone,identity_card,address,city,state,zip,status], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
 
-  insertThirdPartyPackage(req, res, next) {
-    console.log('api - insertThirdPartyPackage');
-    var user_id = req.body.user_id, user_defined_tracking = req.body.user_defined_tracking;
-    var courier = req.body.courier, status = req.body.status;
-    var in_store_date = req.body.instore_date;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.insertThirdPartyPackage;
-      connection.query(sql, [user_id,user_defined_tracking,courier,status,in_store_date], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
   
-  insertAdminReportItems(req, res, next) {
-    console.log('api - insertAdminReportItems');
-    var third_party_packageId = req.body.packageId, item_name = req.body.itemName;
-    var pic1_url = req.body.pic1_url, pic1_name = req.body.pic1_name;
-    var pic2_url = req.body.pic2_url, pic2_name = req.body.pic2_name;
-    var pic3_url = req.body.pic3_url, pic3_name = req.body.pic3_name;
-    var item_count = req.body.itemCount;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.insertAdminReportItems;
-      connection.query(sql, [third_party_packageId,item_name,item_count,pic1_url,pic1_name,pic2_url,pic2_name,pic3_url,pic3_name], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
-
-  updateThirdPartyPackage(req, res, next) {
-    console.log('api - updateThirdPartyPackage');
-    var user_id = req.body.user_id, user_defined_tracking = req.body.user_defined_tracking;
-    var courier = req.body.courier, in_store_date = req.body.instore_date;
-    var id = req.body.package_Id;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.updateThirdPartyPackage;
-      connection.query(sql, [user_id,user_defined_tracking,courier,in_store_date,id], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
   
-  updateReportItems(req, res, next) {
-    console.log('api - updateReportItems');
-    var item_name = req.body.itemName, id = req.body.item_id;
-    var pic1_url = req.body.pic1_url, pic1_name = req.body.pic1_name;
-    var pic2_url = req.body.pic2_url, pic2_name = req.body.pic2_name;
-    var pic3_url = req.body.pic3_url, pic3_name = req.body.pic3_name;
-    var item_count = req.body.itemCount;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.updateReportItems;
-      connection.query(sql, [item_name,item_count,pic1_url,pic1_name,pic2_url,pic2_name,pic3_url,pic3_name,id], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
 
-  deleteThirdPartyPackagebyId(req, res, next) {
-    console.log('api - deleteThirdPartyPackagebyId');
-    var id = req.query.packageId;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.deleteThirdPartyPackagebyId;
-      connection.query(sql, [id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
 
-  getAllWaitPackage(req, res, next) {
-    console.log('api - getAllWaitPackage');
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getAllWaitPackage;
-      connection.query(sql, (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
+  
 
-  getAllFinishPackage(req, res, next) {
-    console.log('api - getAllFinishPackage');
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getAllFinishPackage;
-      connection.query(sql, (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },  
+  
+
+  
+
+
   
   getPackageInfoById(req, res, next) {
     console.log('api - getPackageInfoById');
@@ -350,52 +141,11 @@ module.exports = {
     })
   },
   
-  getAllThirdPartyPackage(req, res, next) {
-    console.log('api - getAllThirdPartyPackage');
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getAllThirdPartyPackage;
-      connection.query(sql, (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
 
-  getThirdPartyPackageByUser(req, res, next) {
-    console.log('api - getThirdPartyPackageByUser');
-    var user_id = req.query.userId;
-    var status = req.query.status;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getThirdPartyPackageByUser;
-      connection.query(sql, [user_id,status], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
 
-  updateAdminReportItems(req, res, next) {
-    console.log('api - updateAdminReportItems');
-    var package_Id = req.body.packageId;
-    var id = req.body.id;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.updateAdminReportItems;
-      connection.query(sql, [package_Id,id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
   
   updateThirdPartyPackageStatus(req, res, next) {
     console.log('api - updateThirdPartyPackageStatus');
@@ -412,21 +162,7 @@ module.exports = {
     })
   },
 
-  getUserPackageByUser(req, res, next) {
-    console.log('api - getUserPackageByUser');
-    var user_id = req.query.userId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getUserPackageByUser;
-      connection.query(sql, [user_id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+
   
   existUserPackageByLittleAntTracking(req, res, next) {
     console.log('api - existUserPackageByLittleAntTracking');
@@ -460,23 +196,7 @@ module.exports = {
     })
   },
 
-  existRecipient(req, res, next) {
-    console.log('api - existRecipient');
-    var name = req.query.name;
-    var phone = req.query.phone;
-    var address = req.query.address;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.existRecipient;
-      connection.query(sql, [name,phone,address], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
 
   existUserEmailOrPhone(req, res, next) {
     console.log('api - existUserEmailOrPhone');
@@ -511,53 +231,8 @@ module.exports = {
     })
   },
 
-  getItemsByPackageId(req, res, next) {
-    console.log('api - getItemsByPackageId');
-    var packageId = req.query.packageId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getItemsByPackageId;
-      connection.query(sql, [packageId], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
   
-  getUserReportItemsByPackageId(req, res, next) {
-    console.log('api - getUserReportItemsByPackageId');
-    var packageId = req.query.packageId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getUserReportItemsByPackageId;
-      connection.query(sql, [packageId], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  getItemsInPackage(req, res, next) {
-    console.log('api - getItemsInPackage');
-    var packageId = req.query.packageId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getItemsInPackage;
-      connection.query(sql, [packageId], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+  
 
   getPackageById(req, res, next) {
     console.log('api - getPackageById');
@@ -624,23 +299,7 @@ module.exports = {
     })
   },
 
-  insertRecipient(req, res, next) {
-    console.log('api - insertRecipient');
-    var name = req.body.recipientName,country_code = req.body.countryCode;
-    var phone = req.body.recipientPhone, identity_card = req.body.recipientIdentityCard;
-    var address = req.body.recipientAddress;
-    var state = req.body.recipientState, city = req.body.recipientCity;
-    var zip = req.body.recipientZip, user_id = req.body.userId;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.insertRecipient;
-      connection.query(sql, [user_id,name,country_code,phone,identity_card,address,city,state,zip], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
+  
 
   deleteRecipientbybyId(req, res, next) {
     console.log('api - deleteRecipientbybyId');
@@ -682,22 +341,7 @@ module.exports = {
     })
   },
   
-  setPackageWeightandStatus(req, res, next) {
-    console.log('api - setPackageWeightandStatus');
-    var status = req.body.status, id = req.body.packageId;
-    var total_weight = req.body.total_weight,finishprocess_time = req.body.finishprocess_time;
-    var total_price = req.body.total_price;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.setPackageWeightandStatus;
-      connection.query(sql, [status,total_weight,total_price,finishprocess_time,id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
+  
   updateUserBalance(req, res, next) {
     console.log('api - updateUserBalance');
     var changeAmt = req.body.changeAmt;
@@ -716,13 +360,14 @@ module.exports = {
     var tracking_nm = req.body.trackingNm, total = req.body.chargeAmount;
     var memo = req.body.comment, storage_number = req.body.storage_number;
     var invoice_type = req.body.type, created_at = req.body.created_at;
+    var prev_balance = req.body.prev_balance;
     var sqlParamsEntity = [];
     var sql1 = sqlMap.updateUserBalance;
     console.log(total + '- ' + storage_number);
     sqlParamsEntity.push(_getNewSqlParamEntity(sql1, [total,storage_number]));
 
     var sql2 = sqlMap.insertUserInvoice;
-    sqlParamsEntity.push(_getNewSqlParamEntity(sql2, [invoice_type,total,storage_number,tracking_nm,memo,created_at]));
+    sqlParamsEntity.push(_getNewSqlParamEntity(sql2, [invoice_type,total,prev_balance,storage_number,tracking_nm,memo,created_at]));
 
     execTrans(sqlParamsEntity, function(err, info){
       if(err){
@@ -740,6 +385,7 @@ module.exports = {
     var tracking_nm = req.body.trackingNm, total = req.body.chargeAmount;
     var memo = req.body.comment, storage_number = req.body.storage_number;
     var invoice_type = req.body.type, created_at = req.body.created_at;
+    var prev_balance = req.body.prev_balance;
     var sqlParamsEntity = [];
     console.log('storage number' + storage_number);
     var sql1 = sqlMap.updateUserBalance;
@@ -747,8 +393,7 @@ module.exports = {
     sqlParamsEntity.push(_getNewSqlParamEntity(sql1, [total,storage_number]));
 
     var sql2 = sqlMap.insertUserInvoice;
-    sqlParamsEntity.push(_getNewSqlParamEntity(sql2, [invoice_type,total,storage_number,tracking_nm,memo,created_at]));
-
+    sqlParamsEntity.push(_getNewSqlParamEntity(sql2, [invoice_type,total,prev_balance,storage_number,tracking_nm,memo,created_at]));
 
     execTrans(sqlParamsEntity, function(err, info){
       if(err){
@@ -790,6 +435,21 @@ module.exports = {
     delete users[phone];
   },
 
+  sendMailCode(req, res, next){
+    var email = req.query.email;
+    var phone = req.query.phoneNm;
+    var code  = twilio_util.randomCode(4);
+    console.log('api - send verification code '+ code + ' to ' + email);
+    mail_util.mail(email,'验证码',code + '',function (err,data) {
+      if (err) {
+        res.send({code: 0, msg: '验证码发送失败，请重试或联系管理员'});
+      } else {
+        users[phone] = code;
+        res.send({code: 1, msg: '验证码发送成功'});
+      }
+    });
+  },
+
   registerUser(req, res, next) {
     console.log('api - registerUser');
     var storage_number = req.body.storage_number;
@@ -820,52 +480,9 @@ module.exports = {
     })
   },
   
-  getInvoiceByUser(req, res, next) {
-    console.log('api - getInvoiceByUser');
-    var user_sotrageNm = req.query.user_sotrageNm;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getInvoiceByUser;
-      connection.query(sql, [user_sotrageNm], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+
   
-  getAllInvoices(req, res, next) {
-    console.log('api - getAllInvoices');
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getAllInvoices;
-      connection.query(sql, (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-  
-  getDefinedTrackingById(req, res, next) {
-    console.log('api - getDefinedTrackingById');
-    var id = req.query.packageId;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = sqlMap.getDefinedTrackingById;
-      connection.query(sql,  [id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+
   
   deletePackagebybyId(req, res, next) {
     console.log('api - deletePackagebybyId');
@@ -879,44 +496,9 @@ module.exports = {
     })
   },
   
-  updateAdminItemCount(req, res, next){
-    console.log('api - update Admin Reported ItemCount');
-    var update_count = req.body.update_count, item_id = req.body.item_id;
-    var third_party_packageId = req.body.third_party_packageId, package_Id = req.body.package_Id;
-    var item_name = req.body.item_name, item_count = req.body.item_count;
-    var pic1_url = req.body.pic1_url, pic1_name = req.body.pic1_name;
-    var pic2_url = req.body.pic2_url, pic2_name = req.body.pic3_name;
-    var pic3_url = req.body.pic3_url, pic3_name = req.body.pic3_name;
-    var sqlParamsEntity = [];
-    var sql1 = 'UPDATE littleAnt_admin_report_items SET item_count = item_count + ? WHERE id = ?';
-    console.log('change count' + item_count + '- ' + item_id);
-    sqlParamsEntity.push(_getNewSqlParamEntity(sql1, [update_count,item_id]));
-
-    var sql2 = 'INSERT INTO littleAnt_admin_report_items(third_party_packageId,package_Id,item_name,item_count,pic1_url,pic1_name,pic2_url,pic2_name,pic3_url,pic3_name,origiral_item_Id) VALUES(?,?,?,?,?,?,?,?,?,?,?)';
-    sqlParamsEntity.push(_getNewSqlParamEntity(sql2, [third_party_packageId,package_Id,item_name,item_count,pic1_url,pic1_name,pic2_url,pic2_name,pic3_url,pic3_name,item_id]));
-
-    execTrans(sqlParamsEntity, function(err, info){
-      if(err){
-        console.error("事务执行失败");
-        res.send('error');
-      }else{
-        console.log("done.");
-        res.send('done');
-      }
-    })
-  },
   
-  deleteUserReportItem(req, res, next) {
-    console.log('api - deleteUserReportItem');
-    var id = req.query.itemId;
-    pool.getConnection((err, connection) => {
-      var sql = sqlMap.deleteUserReportItem;
-      connection.query(sql, [id], (err, result) => {
-          res.json(result);
-          connection.release();
-      })
-    })
-  },
+  
+  
 
   deleteAdminItemAndChangeCount(req, res, next){
     console.log('api - when delete package, if the item have more than one');
@@ -1021,9 +603,10 @@ module.exports = {
     var alias = req.body.alias, classA_rate = req.body.classA_rate;
     var classB_rate = req.body.classB_rate, classC_rate = req.body.classC_rate;
     var classD_rate = req.body.classD_rate;
+    var inbound_rate = req.body.inbound_rate;
     pool.getConnection((err, connection) => {
       var sql = userSqlMap.insertRateTable;
-      connection.query(sql, [alias,classA_rate,classB_rate,classC_rate,classD_rate], (err, result) => {
+      connection.query(sql, [alias,classA_rate,classB_rate,classC_rate,classD_rate,inbound_rate], (err, result) => {
         if(err)
           console.log(err);  
         res.json(result);
@@ -1037,9 +620,10 @@ module.exports = {
     var alias = req.body.alias, classA_rate = req.body.classA_rate;
     var classB_rate = req.body.classB_rate, classC_rate = req.body.classC_rate;
     var classD_rate = req.body.classD_rate, id = req.body.rateId;
+    var inbound_rate = req.body.inbound_rate;
     pool.getConnection((err, connection) => {
       var sql = userSqlMap.editRateTable;
-      connection.query(sql, [alias,classA_rate,classB_rate,classC_rate,classD_rate,id], (err, result) => {
+      connection.query(sql, [alias,classA_rate,classB_rate,classC_rate,classD_rate,inbound_rate,id], (err, result) => {
         if(err)
           console.log(err);
         res.json(result);
@@ -1179,21 +763,7 @@ module.exports = {
     })
   },
 
-  getUserReportItemsByChildId(req, res, next) {
-    console.log('api - getUserReportItemsByChildId');
-    var childPackage_Id= req.query.childPackage_Id;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = userSqlMap.getUserReportItemsByChildId;
-      connection.query(sql, [childPackage_Id], (err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+
 
   setAdminComment(req, res, next) {
     console.log('api - setAdminComment');
@@ -1320,70 +890,8 @@ module.exports = {
     })
   },
 
-  //生成child order
-  insertChildOrder(req, res, next) {
-    console.log('api - insertChildOrder');
-    var litlleant_package_id = req.body.litlleant_package_id, vendor = req.body.vendor;
-    var weight = req.body.weight;
-    var litlleant_package_number = req.body.litlleant_package_number, report_item_description = req.body.report_item_description;
-    pool.getConnection((err, connection) => {
-      var sql = userSqlMap.insertChildOrder;
-      connection.query(sql, [litlleant_package_id,litlleant_package_number,vendor,weight,report_item_description], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
 
-  //Set child order id到用户申报的物品
-  updateReportItemChildOrder(req, res, next) {
-    console.log('api - updateReportItemChildOrder');
-    var childPackage_Id = req.body.childPackage_Id, id = req.body.id;
-    var unit = req.body.unit;
-    pool.getConnection((err, connection) => {
-      var sql = userSqlMap.updateReportItemChildOrder;
-      connection.query(sql, [childPackage_Id,unit,id], (err, result) => {
-        if(err)
-          console.log(err);  
-        res.json(result);
-          connection.release();
-      })
-    })
-  },
   
-  searchInfoByChildPackageId(req, res, next) {
-    console.log('api - searchInfoByChildPackageId');
-    var childPackage_Id = req.query.childPackage_Id;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = userSqlMap.searchInfoByChildPackageId;
-      connection.query(sql, [childPackage_Id],(err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
-
-  searchInfoByPackageId(req, res, next) {
-    console.log('api - searchInfoByPackageId');
-    var package_Id = req.query.package_Id;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = userSqlMap.searchInfoByPackageId;
-      connection.query(sql, [package_Id],(err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
   
   searchAllChildOrderWithNoMailBag(req, res, next) {
     console.log('api - searchAllChildOrderWithNoMailBag');
@@ -1399,22 +907,7 @@ module.exports = {
       })
     })
   },
-  
-  searchInfo(req, res, next) {
-    console.log('api - searchInfo');
-    var package_Id = req.query.package_Id;
-    pool.getConnection((err, connection) => {
-      if(err)
-        console.log(err);
-      var sql = userSqlMap.searchInfo;
-      connection.query(sql, [package_Id],(err, result) => {
-        if(err)
-          console.log(err);
-        res.json(result);
-        connection.release();
-      })
-    })
-  },
+
 
   countChildPackageNmInBag(req, res, next) {
     console.log('api - countChildPackageNmInBag');
@@ -1432,5 +925,98 @@ module.exports = {
     })
   },
 
+  getMailBagName(req, res, next) {
+    console.log('api - getMailBagName');
+    var bag_id = req.query.bag_id;
+    pool.getConnection((err, connection) => {
+      if(err)
+        console.log(err);
+      var sql = userSqlMap.getMailBagName;
+      connection.query(sql, [bag_id],(err, result) => {
+        if(err)
+          console.log(err);
+        res.json(result);
+        connection.release();
+      })
+    })
+  },
 
+  
+  
+
+  insertThirdPartyBatchPackage(req, res, next) {
+    console.log('api - insertThirdPartyBatchPackage');
+    var user_id = req.body.user_id, user_defined_tracking = req.body.user_defined_tracking;
+    var package_type = req.body.package_type, status = req.body.status;
+    var in_store_date = req.body.instore_date;
+    pool.getConnection((err, connection) => {
+      var sql = userSqlMap.insertThirdPartyBatchPackage;
+      connection.query(sql, [user_id,user_defined_tracking,status,in_store_date,package_type], (err, result) => {
+        if(err)
+          console.log(err);  
+        res.json(result);
+          connection.release();
+      })
+    })
+  },
+
+  existChildPackageByChildTrackingNumber(req, res, next) {
+    console.log('api - existChildPackageByChildTrackingNumber');
+    var child_tracking_number = req.query.child_tracking_number;
+    pool.getConnection((err, connection) => {
+      if(err)
+        console.log(err);
+      var sql = userSqlMap.existChildPackageByChildTrackingNumber;
+      connection.query(sql, [child_tracking_number],(err, result) => {
+        if(err)
+          console.log(err);
+        res.json(result);
+        connection.release();
+      })
+    })
+  },
+
+  setMailbagIdToNull(req, res, next) {
+    console.log('api - setMailbagIdToNull');
+    var bag_id = req.body.bag_id;
+    pool.getConnection((err, connection) => {
+      var sql = userSqlMap.setMailbagIdToNull;
+      connection.query(sql, [bag_id], (err, result) => {
+        if(err)
+          console.log(err);  
+        res.json(result);
+          connection.release();
+      })
+    })
+  },
+
+  deleteMailBag(req, res, next) {
+    console.log('api - deleteMailBag');
+    var id = req.query.bag_id;
+    pool.getConnection((err, connection) => {
+      var sql = userSqlMap.deleteMailBag;
+      connection.query(sql, [id], (err, result) => {
+          res.json(result);
+          connection.release();
+      })
+    })
+  },
+
+  getVendorTracking(req, res, next) {
+    console.log('api - getVendorTracking');
+    var package_id = req.query.package_id;
+    pool.getConnection((err, connection) => {
+      if(err)
+        console.log(err);
+      var sql = userSqlMap.getVendorTracking;
+      connection.query(sql, [package_id],(err, result) => {
+        if(err)
+          console.log(err);
+        res.json(result);
+        connection.release();
+      })
+    })
+  },
+
+  
 }

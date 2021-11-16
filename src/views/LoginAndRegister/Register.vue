@@ -113,7 +113,7 @@
                       <v-col cols="12">
                         <div class="captcha-row">
                          <v-text-field outlined dense v-model="verificationCode" class="captcha-input" label="验证码"/>
-                         <div v-if="showtime===null" class="captcha-button" @click="send" style="cursor: pointer;">
+                         <div v-if="showtime===null" class="captcha-button" @click="openVerifyDialog" style="cursor: pointer;">
                           获取验证码
                          </div>
                            <div v-else class="captcha-button">
@@ -156,6 +156,41 @@
         </v-snackbar>
       </v-container>
     </v-content>
+    <v-dialog
+      v-model="verifyDialog"
+      max-width="600px"
+    >
+      <v-card>
+        <v-card-title>
+          <span class="headline">获取验证码</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-select
+                  v-model="verifyMethod"
+                  :items="methods"
+                  label="验证方式"
+                  outlined
+                ></v-select>
+                <small>国内手机号有时会收不到短信验证码，请选用邮箱验证</small>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="send"
+          >
+            确认
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
   </div>
 </template>
@@ -187,34 +222,42 @@
           v => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{8,16}$/.test(v) || '至少包含一个大写字母，一个小写字母，一个数字'
         ],
         timeCounter: null,  // null 则显示按钮 秒数则显示读秒
-        showtime: null
+        showtime: null,
+        verifyDialog: false,
+        verifyMethod: '手机验证',
+        methods: ['邮箱验证','手机验证']
       }
     },
 
     methods: {
       sendCode: function(){
         let phone = this.phoneCode.split(' ')[1] + this.phoneNumber;
-        this.$http.get('/api/existUserPhone',{
-          params: {
-            phone: phone,
-          }
-        }).then( (res) => {
-          if(res.data.length === 0){
-            this.$http.get('/api/sendPhoneCode',{
-              params: {
-                phoneNm : phone,
-              }
-            }).then((res) => {
-              if(res.data.code == 1){
-                this.snackbar = true;
-                this.notification = res.data.msg;
-                this.snackbarColor = 'green';
-              }
-            });
-          }else{
-            alert('这个手机号码已经存在');
-          }
-        })
+        if(this.verifyMethod == '邮箱验证'){
+          this.$http.get('/api/sendMailCode',{
+            params: {
+              phoneNm : phone,
+              email: this.loginEmail,
+            }
+          }).then((res) => {
+            if(res.data.code == 1){
+              this.snackbar = true;
+              this.notification = res.data.msg;
+              this.snackbarColor = 'green';
+            }
+          });
+        }else{
+          this.$http.get('/api/sendPhoneCode',{
+            params: {
+              phoneNm : phone,
+            }
+          }).then((res) => {
+            if(res.data.code == 1){
+              this.snackbar = true;
+              this.notification = res.data.msg;
+              this.snackbarColor = 'green';
+            }
+          });
+        }
       },
 
       getUseableStorageNm: function(){
@@ -246,6 +289,7 @@
           let phone = this.phoneCode.split(' ')[1] + this.phoneNumber;
           this.$http.get('/api/existUserEmailOrPhone',{
             params: {
+              email : this.loginEmail,
               phone: phone,
             }
           }).then( (res) => {
@@ -311,11 +355,30 @@
         }
       },
 
+      openVerifyDialog: function(){
+        if(this.$refs.registerForm.validate()){
+          if(this.$refs.verifyCodeForm.validate()){
+            let phone = this.phoneCode.split(' ')[1] + this.phoneNumber;
+            this.$http.get('/api/existUserEmailOrPhone',{
+              params: {
+                email : this.loginEmail,
+                phone: phone,
+              }
+            }).then( (res) => {
+              if(res.data.length != 0){
+                alert('这个手机号码或邮箱已经存在');
+              }else{
+                this.verifyDialog = true;
+              }
+            })            
+          }
+        }        
+      },
+
       send() {
-        if(this.$refs.verifyCodeForm.validate()){
-          this.countDown(60);
-          this.sendCode();
-        }
+        this.verifyDialog = false;
+        this.countDown(60);
+        this.sendCode();
       }
 
     }

@@ -3,8 +3,8 @@
 </template>
 
 <script>
-  export default{
-  	name: 'APP',
+export default {
+    name: 'APP',
     provide () {
       return {
         reload: this.reload

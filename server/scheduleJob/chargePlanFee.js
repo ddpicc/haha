@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const dbConfig = require('../db');
+const dbConfig = require('../db/db');
 var async = require("async");
 
 const pool = mysql.createPool({
